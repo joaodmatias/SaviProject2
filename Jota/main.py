@@ -40,6 +40,7 @@ view = {
 
 
 def draw_registration_result(source, target, transformation):
+    print("correu função")
     source_temp = copy.deepcopy(source)
     target_temp = copy.deepcopy(target)
     source_temp.paint_uniform_color([1, 0.706, 0])
@@ -100,12 +101,21 @@ def main():
         objects.append(d) # add the dict of this object to the list
 
     # Ex6 - ICP
-    cereal_box_model = o3d.io.read_point_cloud('../Data_objects/cereal_box_1_1_1.pcd')
-    bowl_box_model = o3d.io.read_point_cloud('../Data_objects/bowl_2_1_1.pcd')
+    cereal_box_model = o3d.io.read_point_cloud('../Data_objects/cereal_box_1_1_1.pcd') #0
+    cereal_box_model_1 = o3d.io.read_point_cloud('../Data_objects/cereal_box_1_2_1.pcd') #1
+    cereal_box_model_2 = o3d.io.read_point_cloud('../Data_objects/cereal_box_5_1_73.pcd') #2
+    cereal_box_model_3 = o3d.io.read_point_cloud('../Data_objects/cereal_box_5_2_9.pcd') #3
+    bowl_box_model = o3d.io.read_point_cloud('../Data_objects/bowl_2_1_1.pcd') #4
+    bowl_box_model_1 = o3d.io.read_point_cloud('../Data_objects/bowl_5_1_66.pcd') #5
+    bowl_box_model_2 = o3d.io.read_point_cloud('../Data_objects/bowl_5_1_165.pcd') #6
+    soda_can_model = o3d.io.read_point_cloud('../Data_objects/soda_can_2_1_45.pcd') #7
 
-    list_pcd =  [cereal_box_model, bowl_box_model]
-
+    list_pcd =  [cereal_box_model, cereal_box_model_1,cereal_box_model_2,cereal_box_model_3, bowl_box_model,bowl_box_model_1,bowl_box_model_2, soda_can_model]
+    
     for object_idx, object in enumerate(objects):
+        object['rmse'] = 10
+        object['indexed'] = 100
+        min_error = 0.012
         for model_idx, models_object in enumerate(list_pcd): 
             print("Apply point-to-point ICP to object " + str(object['idx']) )
 
@@ -114,28 +124,44 @@ def main():
                                     [0,0,1,0], 
                                     [0.0, 0.0, 0.0, 1.0]])
             reg_p2p = o3d.pipelines.registration.registration_icp(models_object, 
-                                                                object['points'], 2, trans_init, o3d.pipelines.registration.TransformationEstimationPointToPoint())
-            print(str(reg_p2p.inlier_rmse) + "A quando comparado com: " + str(model_idx) )
-            if model_idx == 0:
-                print("é os cerais")
-            elif model_idx == 1:
-                print("é a taça")
-            else:
-                print("sei lá o caralho") 
-                
-            object['rmse'] = reg_p2p.inlier_rmse
-            # draw_registration_result(cereal_box_model, object['points'], reg_p2p.transformation)
+                                                                object['points'], 0.8, trans_init, o3d.pipelines.registration.TransformationEstimationPointToPoint(),
+                                                                o3d.pipelines.registration.ICPConvergenceCriteria(max_iteration=30))
+            #print(str(reg_p2p.inlier_rmse) + "A quando comparado com: " + str(model_idx) )
+            #print(reg_p2p)
+            if reg_p2p.inlier_rmse < min_error and reg_p2p.inlier_rmse != 0:
+                if object['rmse'] > reg_p2p.inlier_rmse:     
+                    object['rmse'] = reg_p2p.inlier_rmse
+                    object['indexed'] = model_idx
+                    object["fitness"] = reg_p2p.fitness
+                    print(object)
+            
+                    draw_registration_result(models_object, object['points'], reg_p2p.transformation)
 
     # How to classify the object. Use the smallest fitting to decide which object is a "cereal box"
     minimum_rmse = 10e8 # just a very large number to start
     cereal_box_object_idx = None
+    bowl_object_idx = None
+    soda_can_idx = None
 
-    for object_idx, object in enumerate(objects):
-        if object['rmse'] < minimum_rmse: # Found a new minimum
-            minimum_rmse = object['rmse']
-            cereal_box_object_idx = object_idx
+    # for object_idx, object in enumerate(objects):
+    #     # if object['rmse'] < minimum_rmse: # Found a new minimum
+    #     #     minimum_rmse = object['rmse']
+    #     if object['indexed'] == 0:
+    #         #cereal_box_object_idx = object_idx
+    #         print("é uma caixa de cereais")
+    #     elif object['indexed'] == 1:
+    #         #bowl_object_idx = object_idx 
+    #         print("é uma taça")
+    #     elif object['indexed'] == 2:
+    #         #soda_can_idx = object_idx
+    #         print("é uma lata de soda") 
+            
 
-    print('The cereal box is object ' + str(cereal_box_object_idx))
+    #print('The cereal box is object ' + str(cereal_box_object_idx))
+    #print('The bowl  is object ' + str(bowl_object_idx))
+    
+    #print('The soda can is object ' + str(soda_can_idx))
+    
     # ------------------------------------------
     # Visualization
     # ------------------------------------------
@@ -175,9 +201,18 @@ def main():
     for object_idx, object in enumerate(objects):
         label_pos = [object['center'][0], object['center'][1], object['center'][2] + 0.15]
 
-        label_text = object['idx']
-        if object_idx == cereal_box_object_idx:
+        label_text = "Obj: " + object['idx']
+        #if object_idx == cereal_box_object_idx:
+        if object['indexed'] <= 3:
             label_text += ' (Cereal Box)'
+        #elif object_idx == bowl_object_idx:
+        elif object['indexed'] >= 4 and object['indexed'] <= 6:
+            label_text += ' (Bowl) ' 
+        #elif object_idx == soda_can_idx:
+        elif object['indexed'] == 7:
+            label_text += " (Soda) "
+        else:
+            label_text += " (none) "
 
         label = widget3d.add_3d_label(label_pos, label_text)
         label.color = gui.Color(object['color'][0], object['color'][1],object['color'][2])
