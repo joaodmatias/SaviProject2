@@ -39,14 +39,14 @@ view = {
 }
 
 
-def draw_registration_result(source, target, transformation):
+def draw_registration_result(source, target, transformation, bbox_to_draw_object, bbox_to_draw_object_target):
     print("correu função")
     source_temp = copy.deepcopy(source)
     target_temp = copy.deepcopy(target)
     source_temp.paint_uniform_color([1, 0.706, 0])
     target_temp.paint_uniform_color([0, 0.651, 0.929])
     source_temp.transform(transformation)
-    o3d.visualization.draw_geometries([source_temp, target_temp],
+    o3d.visualization.draw_geometries([source_temp, target_temp, bbox_to_draw_object, bbox_to_draw_object_target],
                                       zoom=0.4459,
                                       front=[0.9288, -0.2951, -0.2242],
                                       lookat=[1.6784, 2.0612, 1.4451],
@@ -109,13 +109,18 @@ def main():
     bowl_box_model_1 = o3d.io.read_point_cloud('../Data_objects/bowl_5_1_66.pcd') #5
     bowl_box_model_2 = o3d.io.read_point_cloud('../Data_objects/bowl_5_1_165.pcd') #6
     soda_can_model = o3d.io.read_point_cloud('../Data_objects/soda_can_2_1_45.pcd') #7
+    soda_can_model_1 = o3d.io.read_point_cloud('../Data_objects/soda_can_4_1_94.pcd') #8
+    soda_can_model_2 = o3d.io.read_point_cloud('../Data_objects/soda_can_4_1_137.pcd') #9
+    coffe_mug_model = o3d.io.read_point_cloud('../Data_objects/coffee_mug_2_1_122.pcd') #10
+    coffe_mug_model_1 = o3d.io.read_point_cloud('../Data_objects/coffee_mug_6_1_67.pcd') #11
+    
 
-    list_pcd =  [cereal_box_model, cereal_box_model_1,cereal_box_model_2,cereal_box_model_3, bowl_box_model,bowl_box_model_1,bowl_box_model_2, soda_can_model]
+    list_pcd =  [cereal_box_model, cereal_box_model_1,cereal_box_model_2,cereal_box_model_3, bowl_box_model,bowl_box_model_1,bowl_box_model_2, soda_can_model, soda_can_model_1, soda_can_model_2 , coffe_mug_model, coffe_mug_model_1]
     
     for object_idx, object in enumerate(objects):
         object['rmse'] = 10
         object['indexed'] = 100
-        min_error = 0.012
+        min_error = 0.03
         for model_idx, models_object in enumerate(list_pcd): 
             print("Apply point-to-point ICP to object " + str(object['idx']) )
 
@@ -123,25 +128,68 @@ def main():
                                     [0,1,0,0],
                                     [0,0,1,0], 
                                     [0.0, 0.0, 0.0, 1.0]])
-            reg_p2p = o3d.pipelines.registration.registration_icp(models_object, 
-                                                                object['points'], 0.8, trans_init, o3d.pipelines.registration.TransformationEstimationPointToPoint(),
-                                                                o3d.pipelines.registration.ICPConvergenceCriteria(max_iteration=30))
+            reg_p2p = o3d.pipelines.registration.registration_icp(object['points'], models_object, 1.0, trans_init, o3d.pipelines.registration.TransformationEstimationPointToPoint(),
+                                                                o3d.pipelines.registration.ICPConvergenceCriteria(max_iteration=2000))
             #print(str(reg_p2p.inlier_rmse) + "A quando comparado com: " + str(model_idx) )
             #print(reg_p2p)
-            if reg_p2p.inlier_rmse < min_error and reg_p2p.inlier_rmse != 0:
-                if object['rmse'] > reg_p2p.inlier_rmse:     
-                    object['rmse'] = reg_p2p.inlier_rmse
-                    object['indexed'] = model_idx
-                    object["fitness"] = reg_p2p.fitness
-                    print(object)
             
-                    draw_registration_result(models_object, object['points'], reg_p2p.transformation)
+            #######################################################
+            ########Comparação####################################
+            ######################################################
+            bbox_to_draw_object = o3d.geometry.AxisAlignedBoundingBox.get_axis_aligned_bounding_box(object['points'])
+            bbox_to_draw_object.color = (1, 0, 0)
+            bbox_to_draw_object_target = o3d.geometry.AxisAlignedBoundingBox.get_axis_aligned_bounding_box(models_object)
+            bbox_to_draw_object_target.color = (0, 1, 0)
+            Volume_source = o3d.geometry.AxisAlignedBoundingBox.volume(bbox_to_draw_object)
+            Volume_target = o3d.geometry.AxisAlignedBoundingBox.volume(bbox_to_draw_object_target)
+            Dimensions_source = o3d.geometry.AxisAlignedBoundingBox.get_extent(bbox_to_draw_object)
+            Dimensions_target = o3d.geometry.AxisAlignedBoundingBox.get_extent(bbox_to_draw_object_target)
+            #print("Volume da Source: " + str(Volume_source))
+            #print("Volume do Target " + str(Volume_target))   
+            
+            #print("dimensões do Source: " + str(Dimensions_source))
+            #print("dimensões do Target: " + str(Dimensions_target))
+
+            volume_compare = abs(Volume_source - Volume_target)  
+            print("Volume de comparação " + str(volume_compare))   
+            
+            x_distance = abs(Dimensions_source[0]- Dimensions_target[0])
+            y_distance = abs(Dimensions_source[1]- Dimensions_target[1])
+            z_distance = abs(Dimensions_source[2]- Dimensions_target[2])
+            
+            print("distancia em x: " + str(x_distance))
+            print("distancia em y: " + str(y_distance))
+            print("distancia em z: " + str(z_distance))
+            #if z_distance < 0.01 :  
+            
+            ######################################################
+            ######################################################
+            ######################################################
+            
+            object_points_img = o3d.create_color_image(object['points'])
+            o3d.io.write_image("../images_objects/object_points_img.jpg", object_points_img)
+            models_points_img = o3d.create_color_image(models_object)
+            o3d.io.write_image("../images_objects/models_points_img.jpg", models_points_img)
+            
+            #######################################################
+            #######################################################
+            #######################################################
+            
+            if  volume_compare < 0.006 :        
+                if reg_p2p.inlier_rmse < min_error and reg_p2p.inlier_rmse != 0:
+                    if object['rmse'] > reg_p2p.inlier_rmse:
+                        object['rmse'] = reg_p2p.inlier_rmse
+                        object['indexed'] = model_idx
+                        object["fitness"] = reg_p2p.fitness
+                        print(object)
+
+                        draw_registration_result( object['points'],models_object, reg_p2p.transformation, bbox_to_draw_object, bbox_to_draw_object_target)
 
     # How to classify the object. Use the smallest fitting to decide which object is a "cereal box"
-    minimum_rmse = 10e8 # just a very large number to start
-    cereal_box_object_idx = None
-    bowl_object_idx = None
-    soda_can_idx = None
+    # minimum_rmse = 10e8 # just a very large number to start
+    # cereal_box_object_idx = None
+    # bowl_object_idx = None
+    # soda_can_idx = None
 
     # for object_idx, object in enumerate(objects):
     #     # if object['rmse'] < minimum_rmse: # Found a new minimum
@@ -173,13 +221,24 @@ def main():
     entities.append(frame)
 
     # Draw bbox
+    
     bbox_to_draw = o3d.geometry.LineSet.create_from_axis_aligned_bounding_box(p.bbox)
     entities.append(bbox_to_draw)
 
+    
+    
     # Draw objects
     for object_idx, object in enumerate(objects):
         # if object_idx == 2: #  show only object idx = 2
         entities.append(object['points'])
+        
+        
+        
+        bbox_to_draw_object = o3d.geometry.AxisAlignedBoundingBox.get_axis_aligned_bounding_box(object['points'])
+        entities.append(bbox_to_draw_object)
+        
+        # Dimensions = o3d.geometry.AxisAlignedBoundingBox.volume(bbox_to_draw_object)
+        # print("dimensoes " + str(Dimensions))
 
     # Make a more complex open3D window to show object labels on top of 3d
     app = gui.Application.instance
@@ -209,8 +268,10 @@ def main():
         elif object['indexed'] >= 4 and object['indexed'] <= 6:
             label_text += ' (Bowl) ' 
         #elif object_idx == soda_can_idx:
-        elif object['indexed'] == 7:
+        elif object['indexed'] >= 7 and object['indexed'] <= 9:
             label_text += " (Soda) "
+        elif object['indexed'] >= 10 and object['indexed'] <= 11:
+            label_text += " (Mug) "
         else:
             label_text += " (none) "
 
