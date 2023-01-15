@@ -24,7 +24,7 @@ class PointCloudProcessing():
         self.pcd = o3d.io.read_point_cloud(filename)
         self.original = deepcopy(self.pcd) # make a vbackup of the original point cloud
 
-    def preProcess(self,voxel_size=0.02):
+    def preProcess(self,voxel_size=0.03):
         # Downsampling using voxel grid filter
         self.pcd = self.pcd.voxel_down_sample(voxel_size=voxel_size) 
         print('Downsampling reduced point cloud from  ' + str(len(self.original.points)) + ' to ' + str(len(self.pcd.points))+  ' points')

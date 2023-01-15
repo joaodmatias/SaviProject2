@@ -52,6 +52,32 @@ def draw_registration_result(source, target, transformation, bbox_to_draw_object
                                       lookat=[1.6784, 2.0612, 1.4451],
                                       up=[-0.3402, -0.9189, -0.1996])
 
+def load_view_point(pcd, filename, id):
+    vis = o3d.visualization.Visualizer()
+    vis.create_window()
+    ctr = vis.get_view_control()
+    param = o3d.io.read_pinhole_camera_parameters(filename)
+    vis.add_geometry(pcd)
+    ctr.convert_from_pinhole_camera_parameters(param)
+    vis.poll_events()
+    vis.update_renderer()
+    vis.run()
+    vis.capture_screen_image("image_"+str(id)+".jpg")        
+    
+    vis.destroy_window()
+
+
+def save_view_point(pcd, filename):
+    vis = o3d.visualization.Visualizer()
+    vis.create_window()
+    vis.add_geometry(pcd)
+    vis.update_geometry(pcd)
+    vis.poll_events()
+    vis.run()  # user changes the view and press "q" to terminate
+    param = vis.get_view_control().convert_to_pinhole_camera_parameters()
+    o3d.io.write_pinhole_camera_parameters(filename, param)
+    vis.destroy_window()
+
 def main():
 
     # ------------------------------------------
@@ -59,6 +85,10 @@ def main():
     # ------------------------------------------
     p = PointCloudProcessing()
     p.loadPointCloud('/home/jota/Documents/SAVI/savi_22-23/Parte10/data/scene.ply')
+    
+    print("Load a ply point cloud, print it, and render it")
+    ply_point_cloud = o3d.data.PLYPointCloud()
+    point_cloud = o3d.io.read_point_cloud('/home/jota/Documents/SAVI/Savi_trabalho_2/SaviProject2/Data_scenario/scene.ply')
 
     # ------------------------------------------
     # Execution
@@ -72,6 +102,19 @@ def main():
     p.transform(0,0,-37,0,0,0)
     p.transform(0,0,0,-0.85,-1.10,0.35)
 
+    # Create an instance of the class
+    pcp = PointCloudProcessing()
+
+    # Set the point cloud as an attribute of the class instance
+    pcp.pcd = point_cloud
+
+    # Call the transform function on the class instance, passing in the transformation parameters
+    pcp.transform(-108,0,0,0,0,0)
+    pcp.transform(0,0,-37,0,0,0)
+    pcp.transform(0,0,0,-0.85,-1.10,0.35)
+    
+    
+    
     #Ex3 
     p.crop(-0.9, -0.9, -0.3, 0.9, 0.9, 0.4)
 
@@ -166,10 +209,6 @@ def main():
             ######################################################
             ######################################################
             
-            object_points_img = o3d.create_color_image(object['points'])
-            o3d.io.write_image("../images_objects/object_points_img.jpg", object_points_img)
-            models_points_img = o3d.create_color_image(models_object)
-            o3d.io.write_image("../images_objects/models_points_img.jpg", models_points_img)
             
             #######################################################
             #######################################################
@@ -183,7 +222,8 @@ def main():
                         object["fitness"] = reg_p2p.fitness
                         print(object)
 
-                        draw_registration_result( object['points'],models_object, reg_p2p.transformation, bbox_to_draw_object, bbox_to_draw_object_target)
+                        #draw_registration_result( object['points'],models_object, reg_p2p.transformation, bbox_to_draw_object, bbox_to_draw_object_target)
+
 
     # How to classify the object. Use the smallest fitting to decide which object is a "cereal box"
     # minimum_rmse = 10e8 # just a very large number to start
@@ -233,13 +273,33 @@ def main():
         entities.append(object['points'])
         
         
-        
+        # Get the oriented bounding box of the point cloud
         bbox_to_draw_object = o3d.geometry.AxisAlignedBoundingBox.get_axis_aligned_bounding_box(object['points'])
         entities.append(bbox_to_draw_object)
+    
         
-        # Dimensions = o3d.geometry.AxisAlignedBoundingBox.volume(bbox_to_draw_object)
-        # print("dimensoes " + str(Dimensions))
 
+        
+    entities.append(point_cloud)
+    
+    
+    
+    for idx, object in enumerate(objects):
+        
+        save_view_point(object['points'], "viewpoint.json")
+        
+        load_view_point(point_cloud, "viewpoint.json", idx)     
+        # vis = o3d.visualization.Visualizer()
+        # vis.create_window()
+        # vis.add_geometry(point_cloud)
+        # vis.update_geometry(point_cloud)
+        # vis.poll_events()
+        # vis.update_renderer()
+        # vis.capture_screen_image("image_1.jpg")
+        # vis.destroy_window()
+    
+    
+    
     # Make a more complex open3D window to show object labels on top of 3d
     app = gui.Application.instance
     app.initialize() # create an open3d app
@@ -251,7 +311,7 @@ def main():
     material = rendering.MaterialRecord()
     material.shader = "defaultUnlit"
     material.point_size = 2 * w.scaling
-
+    
     # Draw entities
     for entity_idx, entity in enumerate(entities):
         widget3d.scene.add_geometry("Entity " + str(entity_idx), entity, material)
@@ -284,7 +344,6 @@ def main():
     w.add_child(widget3d)
 
     app.run()
-
     # o3d.visualization.draw_geometries(entities,
     #                                 zoom=view['trajectory'][0]['zoom'],
     #                                 front=view['trajectory'][0]['front'],
