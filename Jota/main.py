@@ -95,7 +95,7 @@ def main():
     # ------------------------------------------
 
     # Ex1
-    p.preProcess(voxel_size=0.01)
+    p.preProcess(voxel_size=0.03)
 
     # Ex2
     p.transform(-108,0,0,0,0,0)
