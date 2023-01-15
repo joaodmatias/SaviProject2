@@ -45,6 +45,7 @@ def main():
     
     print("Load a ply point cloud, print it, and render it")
     pc.loadPointCloud('Scenes/pc/01.ply')
+    point_cloud = o3d.io.read_point_cloud('/home/jota/Documents/SAVI/Savi_trabalho_2/SaviProject2/Data_scenario/scene.ply')
 
     pc.preProcess(0.02)
 
@@ -52,6 +53,18 @@ def main():
     pc.transform(250,0,0,0,0,0)
     pc.transform(0,0,45,0,0,0)
     pc.transform(0,0,0,1.5,-0.45,0.25)
+    
+    # Create an instance of the class
+    pcp = PointCloudProcessing()
+
+    # Set the point cloud as an attribute of the class instance
+    pcp.pcd = point_cloud
+
+    # Call the transform function on the class instance, passing in the transformation parameters
+    pcp.transform(250,0,0,0,0,0)
+    pcp.transform(0,0,45,0,0,0)
+    pcp.transform(0,0,0,1.5,-0.45,0.25)
+    
     
     pc.crop(0, 0, -0.1, 1, 1, 0.25)
 
@@ -92,6 +105,8 @@ def main():
     # Draw bbox
     bbox_to_draw = o3d.geometry.LineSet.create_from_axis_aligned_bounding_box(pc.bbox)
     entities.append(bbox_to_draw)
+    
+    
 
     # Draw objects
     for object_idx, object in enumerate(objects):
@@ -99,7 +114,7 @@ def main():
         color = object['color'] * 255
         print('Object ' + object['idx'] + ' has ' + str(color) + ' color')
 
-
+    entities.append(point_cloud)
 
     o3d.visualization.draw_geometries(entities,
                                     zoom=view['trajectory'][0]['zoom'],
