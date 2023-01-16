@@ -44,29 +44,17 @@ def main():
     pc = PointCloudProcessing()
     
     print("Load a ply point cloud, print it, and render it")
+    # pc.loadPointCloud('Scenes/pc/01.ply')
     pc.loadPointCloud('Scenes/pc/01.ply')
-    point_cloud = o3d.io.read_point_cloud('/home/jota/Documents/SAVI/Savi_trabalho_2/SaviProject2/Data_scenario/scene.ply')
 
-    pc.preProcess(0.02)
+    pc.preProcess(0.01)
 
     # Set coordinate frame
     pc.transform(250,0,0,0,0,0)
     pc.transform(0,0,45,0,0,0)
     pc.transform(0,0,0,1.5,-0.45,0.25)
     
-    # Create an instance of the class
-    pcp = PointCloudProcessing()
-
-    # Set the point cloud as an attribute of the class instance
-    pcp.pcd = point_cloud
-
-    # Call the transform function on the class instance, passing in the transformation parameters
-    pcp.transform(250,0,0,0,0,0)
-    pcp.transform(0,0,45,0,0,0)
-    pcp.transform(0,0,0,1.5,-0.45,0.25)
-    
-    
-    pc.crop(0, 0, -0.1, 1, 1, 0.25)
+    pc.crop(0, 0, -0.08, 1, 1, 0.25)
 
     outliers = pc.findPlane()
     
@@ -76,7 +64,7 @@ def main():
 
 
     number_of_objects = len(object_idxs)
-    colormap = cm.Pastel1(list(range(0,number_of_objects)))
+    # colormap = cm.Pastel1(list(range(0,number_of_objects)))
 
     objects = []
     for object_idx in object_idxs:
@@ -87,8 +75,8 @@ def main():
         d = {}
         d['idx'] = str(object_idx + 1)
         d['points'] = object_points
-        d['color'] = colormap[object_idx, 0:3]
-        d['points'].paint_uniform_color(d['color']) 
+        # d['color'] = colormap[object_idx, 0:3]
+        # d['points'].paint_uniform_color(d['color']) 
         d['center'] = d['points'].get_center()
         objects.append(d) # add the dict of this object to the list
 
@@ -105,16 +93,17 @@ def main():
     # Draw bbox
     bbox_to_draw = o3d.geometry.LineSet.create_from_axis_aligned_bounding_box(pc.bbox)
     entities.append(bbox_to_draw)
-    
-    
 
     # Draw objects
     for object_idx, object in enumerate(objects):
         entities.append(object['points'])
-        color = object['color'] * 255
-        print('Object ' + object['idx'] + ' has ' + str(color) + ' color')
 
-    entities.append(point_cloud)
+        properties = ObjectProperties(object)
+        size = properties.getSize()
+        print(size)
+
+        properties.getColor('image1.jpg')
+
 
     o3d.visualization.draw_geometries(entities,
                                     zoom=view['trajectory'][0]['zoom'],

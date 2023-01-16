@@ -4,6 +4,7 @@ from copy import deepcopy
 import open3d as o3d
 import math
 import numpy as np
+import os
 
 
 class PointCloudProcessing():
@@ -11,8 +12,11 @@ class PointCloudProcessing():
         pass
 
     def loadPointCloud(self, filename):
+
+        os.system('pcl_ply2pcd ' + filename + ' pcd_point_cloud.pcd')
+        self.pcd = o3d.io.read_point_cloud('pcd_point_cloud.pcd')
+
         print("Load a point cloud from " + filename)
-        self.pcd = o3d.io.read_point_cloud(filename)
         self.original = deepcopy(self.pcd) # make a vbackup of the original point cloud
 
     def preProcess(self,voxel_size=0.02):
@@ -25,7 +29,7 @@ class PointCloudProcessing():
         # TODO Is this a good orientation???
         self.pcd.orient_normals_to_align_with_direction(orientation_reference=np.array([0., 0., 1.]))
         
-    def transform(self, r,p,y,tx,ty,tz): # Rotates the point cloud
+    def transform(self, r,p,y,tx,ty,tz): 
 
         # Convert from rad to deg
         r = math.pi * r / 180.0
@@ -73,3 +77,55 @@ class PointCloudProcessing():
         
         outlier_cloud = self.pcd.select_by_index(inlier_idxs, invert=True)
         return outlier_cloud
+
+class ObjectProperties():
+    def __init__(self, object):
+        self.idx = object['idx']
+        # self.pc_color = object['color']
+        self.center = object['center']
+
+        self.point_cloud = object['points']
+        pc_points = self.point_cloud.points
+        self.points = np.asarray(pc_points)
+
+    def getSize(self):
+        self.point_cloud.translate(-self.center)
+        pc_points_centered = self.point_cloud.points
+        points = np.asarray(pc_points_centered)
+        
+        max_dist_from_center = 0
+        max_z = -1000
+        min_z = 1000
+        for point in points:
+            dist_from_center = math.sqrt(point[0]**2 + point[1]**2)
+
+            if dist_from_center >= max_dist_from_center:
+                max_dist_from_center = dist_from_center
+
+            z = point[2]
+            if z >= max_z:
+                max_z = z
+            elif z <= min_z:
+                min_z = z
+        
+        width = max_dist_from_center*2
+        height = abs(max_z - min_z)
+
+        self.point_cloud.translate(self.center)
+
+        return (width, height)
+
+    def getColor(self, filename):
+        
+        vis = o3d.visualization.Visualizer()
+        vis.create_window()
+        vis.add_geometry(self.point_cloud)
+        vis.get_view_control().rotate(0, np.pi / 4) # rotate around y-axis
+        vis.get_view_control().set_zoom(3.0) #set the zoom level
+        vis.run()  # user changes the view and press "q" to terminate
+        # param = vis.get_view_control().convert_to_pinhole_camera_parameters()
+        # o3d.io.write_pinhole_camera_parameters(filename, param)
+        # image = vis.capture_screen_image()
+        # o3d.io.write_image("image.png", image)
+        vis.destroy_window()
+
