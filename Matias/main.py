@@ -5,7 +5,6 @@ from copy import deepcopy
 import math
 import open3d as o3d
 import numpy as np
-from matplotlib import cm
 from more_itertools import locate
 
 from Classes import *
@@ -35,26 +34,23 @@ def main():
     # ------------------------------------------
     # Initialization
     # ------------------------------------------
-
-
-    # ------------------------------------------
-    # Execution
-    # ------------------------------------------
-    
     pc = PointCloudProcessing()
     
     print("Load a ply point cloud, print it, and render it")
     # pc.loadPointCloud('Scenes/pc/01.ply')
     pc.loadPointCloud('Scenes/pc/01.ply')
 
+    # ------------------------------------------
+    # Execution
+    # ------------------------------------------
     pc.preProcess(0.01)
 
     # Set coordinate frame
     pc.transform(250,0,0,0,0,0)
     pc.transform(0,0,45,0,0,0)
-    pc.transform(0,0,0,1.5,-0.45,0.25)
+    pc.transform(0,0,0,1.45,-0.45,0.25)
     
-    pc.crop(0, 0, -0.08, 1, 1, 0.25)
+    pc.crop(0, 0, -0.085, 1, 1, 0.25)
 
     outliers = pc.findPlane()
     
@@ -64,8 +60,6 @@ def main():
 
 
     number_of_objects = len(object_idxs)
-    # colormap = cm.Pastel1(list(range(0,number_of_objects)))
-
     objects = []
     for object_idx in object_idxs:
 
@@ -74,11 +68,17 @@ def main():
         # Create a dictionary to represent the objects
         d = {}
         d['idx'] = str(object_idx + 1)
-        d['points'] = object_points
-        # d['color'] = colormap[object_idx, 0:3]
-        # d['points'].paint_uniform_color(d['color']) 
+        d['points'] = object_points 
         d['center'] = d['points'].get_center()
-        objects.append(d) # add the dict of this object to the list
+
+        pc_to_convert = d["points"]
+        pc_points = pc_to_convert.points
+        points = np.asarray(pc_points)
+        
+        if points.size > 700:
+            objects.append(d) # add the dict of this object to the list
+        else:
+            continue
 
     # ------------------------------------------
     # Visualization
@@ -100,9 +100,11 @@ def main():
 
         properties = ObjectProperties(object)
         size = properties.getSize()
-        print(size)
+        print("This object's SIZE is " + str(size))
 
-        properties.getColor('image1.jpg')
+        color = properties.getColor(object_idx)
+
+        print("This object's COLOR is " + str(color))
 
 
     o3d.visualization.draw_geometries(entities,

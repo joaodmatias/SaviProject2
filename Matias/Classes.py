@@ -5,6 +5,7 @@ import open3d as o3d
 import math
 import numpy as np
 import os
+import cv2
 
 
 class PointCloudProcessing():
@@ -26,7 +27,6 @@ class PointCloudProcessing():
 
         # Estimate normals
         self.pcd.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=0.2, max_nn=30))
-        # TODO Is this a good orientation???
         self.pcd.orient_normals_to_align_with_direction(orientation_reference=np.array([0., 0., 1.]))
         
     def transform(self, r,p,y,tx,ty,tz): 
@@ -115,17 +115,41 @@ class ObjectProperties():
 
         return (width, height)
 
-    def getColor(self, filename):
-        
+    def getColor(self, idx):  
+        idx = idx + 1
+        image_name = 'image' + str(idx) + '.png'
+
+        # Creating o3d windows with only one object to then process in OpenCV
         vis = o3d.visualization.Visualizer()
         vis.create_window()
         vis.add_geometry(self.point_cloud)
         vis.get_view_control().rotate(0, np.pi / 4) # rotate around y-axis
         vis.get_view_control().set_zoom(3.0) #set the zoom level
-        vis.run()  # user changes the view and press "q" to terminate
-        # param = vis.get_view_control().convert_to_pinhole_camera_parameters()
-        # o3d.io.write_pinhole_camera_parameters(filename, param)
-        # image = vis.capture_screen_image()
-        # o3d.io.write_image("image.png", image)
+        vis.run()  # user changes the view and press "q" to terminatem)
+        vis.capture_screen_image(image_name)
         vis.destroy_window()
 
+        # OpenCV processing
+        img = cv2.imread(image_name)
+        
+        # print(str(img))
+        colored_pixels = []
+
+        b = 0
+        g = 0
+        r = 0
+        for i in range(img.shape[0]):
+            for j in range(img.shape[1]):
+                pixel = img[i, j]
+
+                if pixel[0] < 250 or pixel[1] < 250 or pixel[2] < 250:
+                    colored_pixels.append(pixel)
+                    b = b + pixel[0]
+                    g = g + pixel[1]
+                    r = r + pixel[2]
+
+        b = b/len(colored_pixels)
+        g = g/len(colored_pixels)
+        r = r/len(colored_pixels)
+
+        return (r,g,b)
