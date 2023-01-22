@@ -84,11 +84,11 @@ def main():
     # Initialization   
     # ------------------------------------------
     p = PointCloudProcessing()
-    p.loadPointCloud('/home/jota/Documents/SAVI/savi_22-23/Parte10/data/scene.ply')
+    p.loadPointCloud('/home/joao/Documents/SAVI/SaviProject2/Data_scenario/scene.ply')
     
     print("Load a ply point cloud, print it, and render it")
     ply_point_cloud = o3d.data.PLYPointCloud()
-    point_cloud = o3d.io.read_point_cloud('/home/jota/Documents/SAVI/Savi_trabalho_2/SaviProject2/Data_scenario/scene.ply')
+    point_cloud = o3d.io.read_point_cloud('/home/joao/Documents/SAVI/SaviProject2/Data_scenario/scene.ply')
 
     # ------------------------------------------
     # Execution
