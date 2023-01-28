@@ -1,5 +1,6 @@
 
 
+
 import torch
 import numpy as np
 from colorama import Fore, Style
@@ -46,15 +47,16 @@ class Dataset(torch.utils.data.Dataset):
 
         # print('filename ' + filename + ' is a ' + Fore.RED + class_name + Style.RESET_ALL)
 
-        class_exist = False
         for name in class_names:
             if name == class_name:
                 label = class_names.index(name)
-                class_exist = True
+                #print(label)
 
-        if class_exist == False:
-            class_names.append(class_name)
-            label = class_names.index(class_name)
+#---------------------DUVIDA n funfa--------------------------------
+            # else:
+            #     raise ValueError('Unknown class')
+#-----------------------------------------------------------------
                 
-        return label, class_names
+        return label
         
+    
