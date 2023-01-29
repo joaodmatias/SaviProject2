@@ -46,24 +46,36 @@ def main():
     loss_function = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     class_names = []
+    class_names2 = []
  
     # -----------------------------------------------------------------
     # Datasets
     # -----------------------------------------------------------------
 
     dataset_path = '/home/joao/Documents/SAVI/rgbd-dataset'
-    
 
+    name_filenames = glob.glob(dataset_path + '/*/')
+
+    for paths in name_filenames:
+            parts = paths.split('/')
+            part = parts[6]
+            class_names.append(part)
+    # print(class_names)
 
     image_filenames = glob.glob(dataset_path + '/*/*/*_crop.png' )
 
+    # for image_filename in image_filenames:
+    #     parts = image_filename.split('/')
+    #     part = parts[6]
+    #     class_names2.append(part)
+
+    
     
     # Sample only a few images to speed up development
-    image_filenames = random.sample(image_filenames, k=400)
+    image_filenames = random.sample(image_filenames, k=1500)
 
     #print(image_filenames)
     #print(len(image_filenames))
-
 
     # split images into train and test
     train_image_filenames, test_image_filenames = train_test_split(image_filenames, test_size=0.2)
@@ -91,7 +103,7 @@ def main():
 
     # Resume training
     if resume_training:
-        checkpoint = torch.load(model_path)
+        checkpoint = torch.load(model_path, map_location= device)
         model.load_state_dict(checkpoint['model_state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         idx_epoch = checkpoint['epoch']
