@@ -48,6 +48,7 @@ class PointCloudProcessing():
         # Then translate
         self.pcd = self.pcd.translate((tx,ty,tz))
 
+    
     def crop(self, min_x, min_y, min_z, max_x, max_y, max_z):
 
         #First create a point cloud with the vertices of the desired bounding box
