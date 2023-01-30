@@ -17,6 +17,8 @@ import open3d.visualization.rendering as rendering
 from point_cloud_processing import PointCloudProcessing
 from matplotlib import cm
 from more_itertools import locate
+from image_point import ImageProcessing
+
 
 ##perspective to make a new one CTRL+C in the window and it will copy the view###  479
 view = {
@@ -122,9 +124,6 @@ def main():
     pcp.transform(0,0,-37,0,0,0)
     pcp.transform(0,0,0,-0.85,-1.10,0.35)
     ################################################
-    
-    
-    
     
     
     #Ex3 
@@ -257,7 +256,7 @@ def main():
     entities.append(bbox_to_draw)
 
     
-    
+    centers = []
     for object_idx, object in enumerate(objects):
         # if object_idx == 2: #  show only object idx = 2
         entities.append(object['points'])
@@ -276,7 +275,7 @@ def main():
         bbox_to_draw_object_center = o3d.geometry.AxisAlignedBoundingBox.get_center(object['points'])
         print("centro: " + str(bbox_to_draw_object_center))
         
-    
+        centers.append(bbox_to_draw_object_center)
         
         sphere = o3d.geometry.TriangleMesh().create_sphere(radius=0.04)
         sphere.paint_uniform_color([1, 0, 0]) # muda a cor para vermelho
@@ -296,7 +295,8 @@ def main():
         
         to_show.append(pcp.pcd)
     
-        
+    
+            
     entities.append(point_cloud)
     
     to_show.append(point_cloud_original)
@@ -318,6 +318,9 @@ def main():
     
     #####################################################
 
+    image = ImageProcessing()
+    result = image.loadPointCloud(centers)
+    
     # # Read the image
     # img = cv2.imread("image.png")
 
