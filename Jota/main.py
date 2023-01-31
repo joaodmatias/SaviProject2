@@ -64,6 +64,7 @@ def load_view_point(pcd, filename, id):
     param = o3d.io.read_pinhole_camera_parameters(filename)
     vis.add_geometry(pcd)
     ctr.convert_from_pinhole_camera_parameters(param)
+    ctr.set_zoom(0.15)
     vis.poll_events()
     vis.update_renderer()
     vis.run()
@@ -84,35 +85,39 @@ def save_view_point(pcd, filename):
     param = vis.get_view_control().convert_to_pinhole_camera_parameters()
     o3d.io.write_pinhole_camera_parameters(filename, param)
     vis.destroy_window()
-##############################################################33
+###########################################################
+    # ------------------------------------------
+    # Main function 
+    # ------------------------------------------
+###########################################################
 def main():
-
     # ------------------------------------------
     # Initialization   
     # ------------------------------------------
     p = PointCloudProcessing()
-    p.loadPointCloud('../Data_scenario/scene.ply')
-    
+    p.loadPointCloud('../Data_scenario/scene.ply')    
     print("Load a ply point cloud, print it, and render it")
     
+    # ------------------------------------------
+    # Create a original PointCloud   
+    # ------------------------------------------
     ply_point_cloud = o3d.data.PLYPointCloud()
     point_cloud = o3d.io.read_point_cloud('../Data_scenario/scene.ply')
-    
-    #############################################################
     point_cloud_original = o3d.io.read_point_cloud('../Data_scenario/scene.ply')
-    
     # ------------------------------------------
     # Execution
     # ------------------------------------------
-
-    # Ex1
+    # Parte do matias
     p.preProcess(voxel_size=0.01)
-
+    
     # Ex2
-    p.transform(-108,0,0,0,0,0)
-    p.transform(0,0,-37,0,0,0)
-    p.transform(0,0,0,-0.85,-1.10,0.35)
+    p.transform(-108,0,0,0,0,0)  #Rotação de 108 
+    p.transform(0,0,-37,0,0,0)  #Rotação de -37 
+    p.transform(0,0,0,-0.85,-1.10,0.35) #Translação do ponto
 
+    # ------------------------------------------
+    # Move the scenario point cloud   
+    # ------------------------------------------
     # Create an instance of the class
     pcp = PointCloudProcessing()
 
@@ -123,8 +128,6 @@ def main():
     pcp.transform(-108,0,0,0,0,0)
     pcp.transform(0,0,-37,0,0,0)
     pcp.transform(0,0,0,-0.85,-1.10,0.35)
-    ################################################
-    
     
     #Ex3 
     p.crop(-0.9, -0.9, -0.3, 0.9, 0.9, 0.4)
@@ -154,6 +157,9 @@ def main():
         d['center'] = d['points'].get_center()
         objects.append(d) # add the dict of this object to the list
 
+    # ------------------------------------------
+    # Read the objects point clouds  
+    # ------------------------------------------
     # Ex6 - ICP
     cereal_box_model = o3d.io.read_point_cloud('../Data_objects/cereal_box_1_1_1.pcd') #0
     cereal_box_model_1 = o3d.io.read_point_cloud('../Data_objects/cereal_box_1_2_1.pcd') #1
@@ -167,9 +173,11 @@ def main():
     soda_can_model_2 = o3d.io.read_point_cloud('../Data_objects/soda_can_4_1_137.pcd') #9
     coffe_mug_model = o3d.io.read_point_cloud('../Data_objects/coffee_mug_2_1_122.pcd') #10
     coffe_mug_model_1 = o3d.io.read_point_cloud('../Data_objects/coffee_mug_6_1_67.pcd') #11
-    ###list all the datasets you want to analise##
+    # List all the desired objects for processing
     list_pcd =  [cereal_box_model, cereal_box_model_1,cereal_box_model_2,cereal_box_model_3, bowl_box_model,bowl_box_model_1,bowl_box_model_2, soda_can_model, soda_can_model_1, soda_can_model_2 , coffe_mug_model, coffe_mug_model_1]
-    
+    # ------------------------------------------
+    # Start processing 
+    # ------------------------------------------
     for object_idx, object in enumerate(objects):
         object['rmse'] = 10
         object['indexed'] = 100
@@ -185,28 +193,30 @@ def main():
                                                                 o3d.pipelines.registration.ICPConvergenceCriteria(max_iteration=2000))
             #print(str(reg_p2p.inlier_rmse) + "A quando comparado com: " + str(model_idx) )
             #print(reg_p2p)
-            
-            #######################################################
-            ########Comparação####################################
-            ######################################################
-            
+            # -----------------------------------------------------
+            # Start processing each object and respectiv properties
+            # -----------------------------------------------------
             ##Bounding box to see better the comparation###
             bbox_to_draw_object = o3d.geometry.AxisAlignedBoundingBox.get_axis_aligned_bounding_box(object['points'])
             bbox_to_draw_object.color = (1, 0, 0)
             bbox_to_draw_object_target = o3d.geometry.AxisAlignedBoundingBox.get_axis_aligned_bounding_box(models_object)
             bbox_to_draw_object_target.color = (0, 1, 0)
-            ######################################################
+            
             ##Get some information about the bound boxes###
             Volume_source = o3d.geometry.AxisAlignedBoundingBox.volume(bbox_to_draw_object)
             Volume_target = o3d.geometry.AxisAlignedBoundingBox.volume(bbox_to_draw_object_target)
             Dimensions_source = o3d.geometry.AxisAlignedBoundingBox.get_extent(bbox_to_draw_object)
             Dimensions_target = o3d.geometry.AxisAlignedBoundingBox.get_extent(bbox_to_draw_object_target)
+            
+            # Some Debuging
             #print("Volume da Source: " + str(Volume_source))
             #print("Volume do Target " + str(Volume_target))   
-            
             #print("dimensões do Source: " + str(Dimensions_source))
             #print("dimensões do Target: " + str(Dimensions_target))
 
+            # ------------------------------------------
+            # Doing Some match for better analysis
+            # ------------------------------------------
             volume_compare = abs(Volume_source - Volume_target)  
             print("Volume de comparação " + str(volume_compare))   
             
@@ -219,9 +229,9 @@ def main():
             print("distancia em z: " + str(z_distance))
             #if z_distance < 0.01 :  
             
-            #######################################################
-            #######################################################
-            #######################################################
+            # ------------------------------------------
+            # Start associating each object 
+            # ------------------------------------------
             
             if  volume_compare < 0.006 :        
                 if reg_p2p.inlier_rmse < min_error and reg_p2p.inlier_rmse != 0:
@@ -240,75 +250,79 @@ def main():
     p.inliers.paint_uniform_color([0,1,1]) # paints the plane in red
     entities = []
     
-    
+    # Camera on the initial referential
     to_show = []
     mesh_box = o3d.geometry.TriangleMesh().create_coordinate_frame(size=0.1, origin=[0, 0, 0])
     to_show.append(mesh_box)
     
-    
+    # Camera on the transformed referential
     frame = o3d.geometry.TriangleMesh().create_coordinate_frame(size=0.5, origin=np.array([0., 0., 0.]))
     entities.append(frame)
     
-
-    # Draw bbox
-    
+    # Draw bbox on the pointcloud
     bbox_to_draw = o3d.geometry.LineSet.create_from_axis_aligned_bounding_box(p.bbox)
     entities.append(bbox_to_draw)
 
-    
+    # --------------------------------------------------------------
+    # Moving everything to the inital referential after processeced 
+    # --------------------------------------------------------------
     centers = []
     for object_idx, object in enumerate(objects):
         # if object_idx == 2: #  show only object idx = 2
+        # Show the objects
         entities.append(object['points'])
         
-        
-        # Get the oriented bounding box of the point cloud
+        # Get the aligned bounding box of the point cloud
         bbox_to_draw_object_processed = o3d.geometry.AxisAlignedBoundingBox.get_axis_aligned_bounding_box(object['points'])
         entities.append(bbox_to_draw_object_processed)
         
+        # Get the orieted bouding box
         bbox_to_draw_object_test = o3d.geometry.AxisAlignedBoundingBox.get_oriented_bounding_box(object['points'])
         
-        
-        
-        
-        
+        # Get the center of the each object
         bbox_to_draw_object_center = o3d.geometry.AxisAlignedBoundingBox.get_center(object['points'])
         print("centro: " + str(bbox_to_draw_object_center))
         
+        # Put each center for visualization
         centers.append(bbox_to_draw_object_center)
         
+        # Create a sphere in each center for better visualization
         sphere = o3d.geometry.TriangleMesh().create_sphere(radius=0.04)
         sphere.paint_uniform_color([1, 0, 0]) # muda a cor para vermelho
         sphere = sphere.translate(bbox_to_draw_object_center)
-        
+
+        # Retransform the spheres for the inital coords
         pcp.pcd = sphere
         pcp.transform(0,0,0,0.85,1.10,-0.35)
         pcp.transform(0,0,37,0,0,0)
         pcp.transform(108,0,0,0,0,0)
-        
         to_show.append(pcp.pcd)
         
+        # Do the same above but for the bouding boxes
         pcp.pcd = bbox_to_draw_object_test
         pcp.transform(0,0,0,0.85,1.10,-0.35)
         pcp.transform(0,0,37,0,0,0)
         pcp.transform(108,0,0,0,0,0)
-        
         to_show.append(pcp.pcd)
     
     
-            
+    # Associate the point cloud to the objects for better view         
     entities.append(point_cloud)
     
+    # Associate the inital objects to the original PC
     to_show.append(point_cloud_original)
     
+    # ------------------------------------------
+    # Backup code in case we cant do the processing image 
+    # EXTRA
+    # ------------------------------------------
     # for idx, object in enumerate(objects):
-        
     #     save_view_point(object['points'], "viewpoint.json")
-        
-    #     load_view_point(point_cloud, "viewpoint.json", idx)     
-    
-    ##see the normal view##
-    
+    #     load_view_point(point_cloud, "viewpoint.json", idx)    
+     
+    # ------------------------------------------
+    # Visualize the point cloud  
+    # ------------------------------------------
     o3d.visualization.draw_geometries(to_show,
                                     zoom=view['trajectory'][0]['zoom'],
                                     front=view['trajectory'][0]['front'],
@@ -316,40 +330,15 @@ def main():
                                     up=view['trajectory'][0]['up'],
                                     point_show_normal=False)
     
-    #####################################################
-
+    # ------------------------------------------
+    # Processing the 3D points to pixels  
+    # ------------------------------------------
     image = ImageProcessing()
     result = image.loadPointCloud(centers)
     
-    # # Read the image
-    # img = cv2.imread("image.png")
-
-    # # Get the bounding box center and size
-    # bbox_center = [x, y, z] # Replace with the actual center of the bounding box
-    # bbox_size = [width, height, depth] # Replace with the actual size of the bounding box
-
-    # # Calculate the top-left and bottom-right points of the bounding box
-    # top_left = np.array(bbox_center) - np.array(bbox_size) / 2
-    # bottom_right = np.array(bbox_center) + np.array(bbox_size) / 2
-
-    # # Convert the 3D bounding box to a 2D bounding box by taking only x and y coordinates
-    # top_left_2d = top_left[:2]
-    # bottom_right_2d = bottom_right[:2]
-
-    # # Draw the bounding box on the image
-    # cv2.rectangle(img, tuple(top_left_2d), tuple(bottom_right_2d), (0, 0, 255), 2)
-
-    # # Show the image
-    # cv2.imshow("Image with bounding box", img)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
-
-    
-    
-    
-    #####################################################
-    
-    
+    # ------------------------------------------
+    # Better visualization
+    # ------------------------------------------
     # Make a more complex open3D window to show object labels on top of 3d
     app = gui.Application.instance
     app.initialize() # create an open3d app
@@ -361,15 +350,12 @@ def main():
     material = rendering.MaterialRecord()
     material.shader = "defaultUnlit"
     material.point_size = 2 * w.scaling
-    
     # Draw entities
     for entity_idx, entity in enumerate(entities):
         widget3d.scene.add_geometry("Entity " + str(entity_idx), entity, material)
-
     # Draw labels
     for object_idx, object in enumerate(objects):
         label_pos = [object['center'][0], object['center'][1], object['center'][2] + 0.15]
-
         label_text = "Obj: " + object['idx']
         #if object_idx == cereal_box_object_idx:
         if object['indexed'] <= 3:
@@ -388,15 +374,10 @@ def main():
         label = widget3d.add_3d_label(label_pos, label_text)
         label.color = gui.Color(object['color'][0], object['color'][1],object['color'][2])
         label.scale = 2
-        
     bbox = widget3d.scene.bounding_box
     widget3d.setup_camera(60.0, bbox, bbox.get_center())
     w.add_child(widget3d)
-
     app.run()
     
-
-
-
 if __name__ == "__main__":
     main()

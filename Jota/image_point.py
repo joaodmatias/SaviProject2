@@ -33,8 +33,8 @@ class ImageProcessing():
             points_3d = np.array([[x, y, z]], dtype=np.float32)
             
             #Matriz intrinsica
-            fx = 570.3
-            fy = 570.3
+            fx = 0.5703
+            fy = 0.5703
             cx = 640 / 2
             cy = 480 / 2
 
