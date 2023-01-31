@@ -3,8 +3,25 @@
 
 The SAVI project - Where's my coffee mug? involves implementing an advanced perception system that processes information collected from 3D sensors and conventional cameras. The goal is to detect objects in the scene and their properties.
 
-![Logo](https://www.hipersuper.pt/wp-content/uploads/2012/12/Universidade-de-Aveiro.jpg)
+<p align="center">
+  <img width="460" height="300" src="https://www.hipersuper.pt/wp-content/uploads/2012/12/Universidade-de-Aveiro.jpg">
+</p>
 
+Index
+=================
+
+   * [Description](#installation)
+   * [Text](#usage)
+      * [Text](#stdin)
+      * [Text files](#local-files)
+      * [Text files](#remote-files)
+      * [Text files](#multiple-files)
+      * [Text](#combo)
+   * [Tests](#tests)
+   * [Text](#dependency)
+   * [Text](#docker)
+     * [Text](#local)
+     * [Text](#public)
 
 ## Description
 The second assignment of the SAVI ([Advanced Industrial Vision Systems](https://www.ua.pt/pt/uc/14722)) a curricular unit given at the [university of aveiro](https://www.ua.pt/) in the [Master's degree in mechanical engineering](https://www.ua.pt/pt/curso/488) the project aimed to teach the basics of 3D point cloud understanding and processing, as well as the use of classifiers and integration as a system. The main objective was to recognize objects identified in the point cloud using the "Washington RGB-D Dataset".
