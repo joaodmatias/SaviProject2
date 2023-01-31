@@ -4,7 +4,7 @@
 The SAVI project - Where's my coffee mug? involves implementing an advanced perception system that processes information collected from 3D sensors and conventional cameras. The goal is to detect objects in the scene and their properties.
 
 <p align="center">
-  <img width="460" height="300" src="https://www.hipersuper.pt/wp-content/uploads/2012/12/Universidade-de-Aveiro.jpg">
+  <img src="https://www.hipersuper.pt/wp-content/uploads/2012/12/Universidade-de-Aveiro.jpg">
 </p>
 
 Index
