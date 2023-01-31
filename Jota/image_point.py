@@ -31,7 +31,7 @@ class ImageProcessing():
     # --------------------------------------------------------------
     # 3D to pixel 
     # --------------------------------------------------------------
-    def loadPointCloud(self, points):
+    def loadPointCloud(self, points, show):
         # Inputs are the center points processed in the main file
         
         #print("centros: "+ str(points))
@@ -104,7 +104,6 @@ class ImageProcessing():
             d = x+80
             print(str(a)+" "+str(b)+" "+str(c)+" "+str(d))
             crop_img = img[a:b, c:d]
-            cv2.imshow("Janela", crop_img)
         
             # Change the current directory 
             # to specified directory 
@@ -126,14 +125,14 @@ class ImageProcessing():
         
         # Concatenar as imagens horizontalmente
         result = cv2.hconcat(images)
+        if show:
+            # Exibir imagens na janela
+            cv2.imshow("Janela", result)
 
-        # Exibir imagens na janela
-        cv2.imshow("Janela", result)
+            # Esperar até que uma tecla seja pressionada
+            cv2.waitKey(0)
 
-        # Esperar até que uma tecla seja pressionada
-        cv2.waitKey(0)
-
-        # Destruir a janela
-        cv2.destroyAllWindows()
+            # Destruir a janela
+            cv2.destroyAllWindows()
         
         return point

@@ -11,6 +11,8 @@ from turtle import color
 import open3d as o3d
 import cv2
 import numpy as np
+import argparse
+import os
 import matplotlib.pyplot as plt
 import open3d.visualization.gui as gui
 import open3d.visualization.rendering as rendering
@@ -18,6 +20,7 @@ from point_cloud_processing import PointCloudProcessing
 from matplotlib import cm
 from more_itertools import locate
 from image_point import ImageProcessing
+
 
 
 ##perspective to make a new one CTRL+C in the window and it will copy the view###  479
@@ -43,7 +46,6 @@ view = {
 ############################3333
 ##Function to vizualize the ICP comparation##
 def draw_registration_result(source, target, transformation, bbox_to_draw_object, bbox_to_draw_object_target):
-    print("correu função")
     source_temp = copy.deepcopy(source)
     target_temp = copy.deepcopy(target)
     source_temp.paint_uniform_color([1, 0.706, 0])
@@ -68,7 +70,7 @@ def load_view_point(pcd, filename, id):
     vis.poll_events()
     vis.update_renderer()
     vis.run()
-    vis.capture_screen_image("image_"+str(id)+".jpg")        
+    vis.capture_screen_image("image_extra/image_"+str(id)+".jpg")        
     
     vis.destroy_window()
 ############################################
@@ -85,25 +87,45 @@ def save_view_point(pcd, filename):
     param = vis.get_view_control().convert_to_pinhole_camera_parameters()
     o3d.io.write_pinhole_camera_parameters(filename, param)
     vis.destroy_window()
-###########################################################
-    # ------------------------------------------
-    # Main function 
-    # ------------------------------------------
-###########################################################
+    
+parser = argparse.ArgumentParser()
+parser.add_argument("-c", "--camera", help="Activate camera ref", action="store_true")
+parser.add_argument("-e", "--extra", help="Activate extra function 1", action="store_true")
+parser.add_argument("-t", "--comparation", help="Activate comparation mode", action="store_true")
+parser.add_argument("-f", "--cropped", help="Show the final cropped images", action="store_true")
+parser.add_argument("-p", "--dataset_path", help="Select the path of the desire point cloud", default="../Data_scenario/03.ply", type=str)
+
+
+args = parser.parse_args()
+# ------------------------------------------
+# MInstructions
+#   c - activates camera in the ref perspective only for visualization
+#   e - Activates the extra 1, it shows a window where after pressing "q" you save yout view point and save the 
+#       image(was expecting time for a more advanced study of that in the classificator)
+#   t - Activates the comparation mode , where you can visualize the diferent interations of each dataset in order
+#       to found the model using the ICP 
+#   f - Show de images captured after transforming the 3D camera for the 2D camera processing to the cropped of each object
+#   
+# ------------------------------------------
+
+# ------------------------------------------
+# Main function 
+# ------------------------------------------
+
 def main():
     # ------------------------------------------
     # Initialization   
     # ------------------------------------------
     p = PointCloudProcessing()
-    p.loadPointCloud('../Data_scenario/03.ply')    
+    p.loadPointCloud(args.dataset_path)    
     print("Load a ply point cloud, print it, and render it")
     
     # ------------------------------------------
     # Create a original PointCloud   
     # ------------------------------------------
     ply_point_cloud = o3d.data.PLYPointCloud()
-    point_cloud = o3d.io.read_point_cloud('../Data_scenario/03.ply')
-    point_cloud_original = o3d.io.read_point_cloud('../Data_scenario/03.ply')
+    point_cloud = o3d.io.read_point_cloud(args.dataset_path)
+    point_cloud_original = deepcopy(point_cloud)
     # ------------------------------------------
     # Execution
     # ------------------------------------------
@@ -128,6 +150,8 @@ def main():
     pcp.transform(-108,0,0,0,0,0)
     pcp.transform(0,0,-37,0,0,0)
     pcp.transform(0,0,0,-0.85,-1.10,0.35)
+    
+    
     
     #Ex3 
     p.crop(-0.9, -0.9, -0.3, 0.9, 0.9, 0.4)
@@ -161,20 +185,26 @@ def main():
     # Read the objects point clouds  
     # ------------------------------------------
     # Ex6 - ICP
-    cereal_box_model = o3d.io.read_point_cloud('../Data_objects/cereal_box_1_1_1.pcd') #0
-    cereal_box_model_1 = o3d.io.read_point_cloud('../Data_objects/cereal_box_1_2_1.pcd') #1
-    cereal_box_model_2 = o3d.io.read_point_cloud('../Data_objects/cereal_box_5_1_73.pcd') #2
-    cereal_box_model_3 = o3d.io.read_point_cloud('../Data_objects/cereal_box_5_2_9.pcd') #3
-    bowl_box_model = o3d.io.read_point_cloud('../Data_objects/bowl_2_1_1.pcd') #4
-    bowl_box_model_1 = o3d.io.read_point_cloud('../Data_objects/bowl_5_1_66.pcd') #5
-    bowl_box_model_2 = o3d.io.read_point_cloud('../Data_objects/bowl_5_1_165.pcd') #6
-    soda_can_model = o3d.io.read_point_cloud('../Data_objects/soda_can_2_1_45.pcd') #7
-    soda_can_model_1 = o3d.io.read_point_cloud('../Data_objects/soda_can_4_1_94.pcd') #8
-    soda_can_model_2 = o3d.io.read_point_cloud('../Data_objects/soda_can_4_1_137.pcd') #9
-    coffe_mug_model = o3d.io.read_point_cloud('../Data_objects/coffee_mug_2_1_122.pcd') #10
-    coffe_mug_model_1 = o3d.io.read_point_cloud('../Data_objects/coffee_mug_6_1_67.pcd') #11
-    # List all the desired objects for processing
-    list_pcd =  [cereal_box_model, cereal_box_model_1,cereal_box_model_2,cereal_box_model_3, bowl_box_model,bowl_box_model_1,bowl_box_model_2, soda_can_model, soda_can_model_1, soda_can_model_2 , coffe_mug_model, coffe_mug_model_1]
+    
+    path = '../Data_objects'
+    files = [f for f in os.listdir(path) if f.endswith('.pcd')]
+
+    # dictionary all the desired objects for processing
+    list_pcd = {}
+    for i, file in enumerate(files):
+        variable_name = os.path.splitext(file)[0]
+        point_cloud = o3d.io.read_point_cloud(os.path.join(path, file))
+        list_pcd[variable_name] = {'point_cloud': point_cloud, 'indexed': i} 
+        
+    
+    
+    list_pcd_model = []
+    for variable_name, info in list_pcd.items():
+        list_pcd_model.append(info["point_cloud"])
+        
+
+    #print(list_pcd)
+    # faça algo com model_object e model_idx
     # ------------------------------------------
     # Start processing 
     # ------------------------------------------
@@ -182,8 +212,8 @@ def main():
         object['rmse'] = 10
         object['indexed'] = 100
         min_error = 0.03
-        for model_idx, models_object in enumerate(list_pcd): 
-            print("Apply point-to-point ICP to object " + str(object['idx']) )
+        for model_idx, models_object in enumerate(list_pcd_model): 
+            #print("Apply point-to-point ICP to object " + str(object['idx']) )
 
             trans_init = np.asarray([[1, 0, 0, 0],
                                     [0,1,0,0],
@@ -218,15 +248,15 @@ def main():
             # Doing Some match for better analysis
             # ------------------------------------------
             volume_compare = abs(Volume_source - Volume_target)  
-            print("Volume de comparação " + str(volume_compare))   
+            #print("Volume de comparação " + str(volume_compare))   
             
             x_distance = abs(Dimensions_source[0]- Dimensions_target[0])
             y_distance = abs(Dimensions_source[1]- Dimensions_target[1])
             z_distance = abs(Dimensions_source[2]- Dimensions_target[2])
             
-            print("distancia em x: " + str(x_distance))
-            print("distancia em y: " + str(y_distance))
-            print("distancia em z: " + str(z_distance))
+            #print("distancia em x: " + str(x_distance))
+            #print("distancia em y: " + str(y_distance))
+            #print("distancia em z: " + str(z_distance))
             #if z_distance < 0.01 :  
             
             # ------------------------------------------
@@ -240,8 +270,8 @@ def main():
                         object['indexed'] = model_idx
                         object["fitness"] = reg_p2p.fitness
                         print(object)
-
-                        #draw_registration_result( object['points'],models_object, reg_p2p.transformation, bbox_to_draw_object, bbox_to_draw_object_target)
+                        if args.comparation:
+                            draw_registration_result( object['points'],models_object, reg_p2p.transformation, bbox_to_draw_object, bbox_to_draw_object_target)
 
     # ------------------------------------------
     # Visualization
@@ -264,7 +294,8 @@ def main():
     entities.append(bbox_to_draw)
     
     # Associate the point cloud to the objects for better view         
-    entities.append(point_cloud)
+    entities.append(pcp.pcd)
+    
     # --------------------------------------------------------------
     # Moving everything to the inital referential after processeced 
     # --------------------------------------------------------------
@@ -297,7 +328,7 @@ def main():
         
         # Get the center of the each object
         bbox_to_draw_object_center = o3d.geometry.AxisAlignedBoundingBox.get_center(pcp.pcd)
-        print("centro: " + str(bbox_to_draw_object_center))
+        #print("centro: " + str(bbox_to_draw_object_center))
         
         # Put each center for visualization
         centers.append(bbox_to_draw_object_center)
@@ -319,31 +350,33 @@ def main():
     to_show.append(point_cloud_original)
     to_show.append(frame)
     
-    # ------------------------------------------
+    # ----------------------------------------------------
     # Backup code in case we cant do the processing image 
-    # EXTRA
-    # ------------------------------------------
-    # for idx, object in enumerate(objects):
-    #     save_view_point(object['points'], "viewpoint.json")
-    #     load_view_point(point_cloud, "viewpoint.json", idx)    
+    # EXTRA - activate in case of use the argprase extra
+    # ----------------------------------------------------
+    if args.extra:    
+        for idx, object in enumerate(objects):
+            save_view_point(object['points'], "viewpoint.json")
+            load_view_point(point_cloud, "viewpoint.json", idx)    
      
     # ------------------------------------------
     # Visualize the point cloud  
     # ------------------------------------------
-    o3d.visualization.draw_geometries(to_show,
-                                    zoom=view['trajectory'][0]['zoom'],
-                                    front=view['trajectory'][0]['front'],
-                                    lookat=view['trajectory'][0]['lookat'],
-                                    up=view['trajectory'][0]['up'],
-                                    point_show_normal=False)
-    
+    if args.camera:
+        o3d.visualization.draw_geometries(to_show,
+                                        zoom=view['trajectory'][0]['zoom'],
+                                        front=view['trajectory'][0]['front'],
+                                        lookat=view['trajectory'][0]['lookat'],
+                                        up=view['trajectory'][0]['up'],
+                                        point_show_normal=False)
+        
     # ------------------------------------------
     # Processing the 3D points to pixels  
     # ------------------------------------------
     
-    print("centros:" + str(centers))
+    #print("centros:" + str(centers))
     image = ImageProcessing()
-    result = image.loadPointCloud(centers)
+    result = image.loadPointCloud(centers, args.cropped)
     
     # ------------------------------------------
     # Better visualization
@@ -366,20 +399,14 @@ def main():
     for object_idx, object in enumerate(objects):
         label_pos = [object['center'][0], object['center'][1], object['center'][2] + 0.15]
         label_text = "Obj: " + object['idx']
-        #if object_idx == cereal_box_object_idx:
-        if object['indexed'] <= 3:
-            label_text += ' (Cereal Box)'
-        #elif object_idx == bowl_object_idx:
-        elif object['indexed'] >= 4 and object['indexed'] <= 6:
-            label_text += ' (Bowl) ' 
-        #elif object_idx == soda_can_idx:
-        elif object['indexed'] >= 7 and object['indexed'] <= 9:
-            label_text += " (Soda) "
-        elif object['indexed'] >= 10 and object['indexed'] <= 11:
-            label_text += " (Mug) "
-        else:
-            label_text += " (none) "
-
+        for i, point_cloud in enumerate(list_pcd.values()):
+            print("objecto"+str(object["indexed"]))
+            print("o i: "+str(i))
+            if object['indexed'] == i:
+                variable_name = list(list_pcd.keys())[i]
+                print("nome da variável:", variable_name)
+                label_text += " "+variable_name
+                
         label = widget3d.add_3d_label(label_pos, label_text)
         label.color = gui.Color(object['color'][0], object['color'][1],object['color'][2])
         label.scale = 2
