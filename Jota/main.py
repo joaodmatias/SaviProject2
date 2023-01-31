@@ -95,15 +95,15 @@ def main():
     # Initialization   
     # ------------------------------------------
     p = PointCloudProcessing()
-    p.loadPointCloud('../Data_scenario/scene.ply')    
+    p.loadPointCloud('../Data_scenario/03.ply')    
     print("Load a ply point cloud, print it, and render it")
     
     # ------------------------------------------
     # Create a original PointCloud   
     # ------------------------------------------
     ply_point_cloud = o3d.data.PLYPointCloud()
-    point_cloud = o3d.io.read_point_cloud('../Data_scenario/scene.ply')
-    point_cloud_original = o3d.io.read_point_cloud('../Data_scenario/scene.ply')
+    point_cloud = o3d.io.read_point_cloud('../Data_scenario/03.ply')
+    point_cloud_original = o3d.io.read_point_cloud('../Data_scenario/03.ply')
     # ------------------------------------------
     # Execution
     # ------------------------------------------
@@ -252,23 +252,26 @@ def main():
     
     # Camera on the initial referential
     to_show = []
-    mesh_box = o3d.geometry.TriangleMesh().create_coordinate_frame(size=0.1, origin=[0, 0, 0])
-    to_show.append(mesh_box)
+    # mesh_box = o3d.geometry.TriangleMesh().create_coordinate_frame(size=0.1, origin=[0, 0, 0])
+    # to_show.append(mesh_box)
     
     # Camera on the transformed referential
-    frame = o3d.geometry.TriangleMesh().create_coordinate_frame(size=0.5, origin=np.array([0., 0., 0.]))
+    frame = o3d.geometry.TriangleMesh().create_coordinate_frame(size=0.3, origin=np.array([0., 0., 0.]))
     entities.append(frame)
     
     # Draw bbox on the pointcloud
     bbox_to_draw = o3d.geometry.LineSet.create_from_axis_aligned_bounding_box(p.bbox)
     entities.append(bbox_to_draw)
-
+    
+    # Associate the point cloud to the objects for better view         
+    entities.append(point_cloud)
     # --------------------------------------------------------------
     # Moving everything to the inital referential after processeced 
     # --------------------------------------------------------------
     centers = []
     for object_idx, object in enumerate(objects):
         # if object_idx == 2: #  show only object idx = 2
+        
         # Show the objects
         entities.append(object['points'])
         
@@ -276,11 +279,24 @@ def main():
         bbox_to_draw_object_processed = o3d.geometry.AxisAlignedBoundingBox.get_axis_aligned_bounding_box(object['points'])
         entities.append(bbox_to_draw_object_processed)
         
+    # --------------------------------------------------------------
+    # Restrasnform for the inital ref 
+    # --------------------------------------------------------------
+        
+    for object_idx, object in enumerate(objects):
+
+        point_cloud_demo = deepcopy(object['points'])    
+        pcp.pcd = point_cloud_demo
+        pcp.transform(0,0,0,0.85,1.10,-0.35)
+        pcp.transform(0,0,37,0,0,0)
+        pcp.transform(108,0,0,0,0,0)
+        to_show.append(pcp.pcd)
+        
         # Get the orieted bouding box
-        bbox_to_draw_object_test = o3d.geometry.AxisAlignedBoundingBox.get_oriented_bounding_box(object['points'])
+        bbox_to_draw_object_test = o3d.geometry.AxisAlignedBoundingBox.get_oriented_bounding_box(pcp.pcd)
         
         # Get the center of the each object
-        bbox_to_draw_object_center = o3d.geometry.AxisAlignedBoundingBox.get_center(object['points'])
+        bbox_to_draw_object_center = o3d.geometry.AxisAlignedBoundingBox.get_center(pcp.pcd)
         print("centro: " + str(bbox_to_draw_object_center))
         
         # Put each center for visualization
@@ -291,26 +307,17 @@ def main():
         sphere.paint_uniform_color([1, 0, 0]) # muda a cor para vermelho
         sphere = sphere.translate(bbox_to_draw_object_center)
 
-        # Retransform the spheres for the inital coords
-        pcp.pcd = sphere
-        pcp.transform(0,0,0,0.85,1.10,-0.35)
-        pcp.transform(0,0,37,0,0,0)
-        pcp.transform(108,0,0,0,0,0)
-        to_show.append(pcp.pcd)
-        
-        # Do the same above but for the bouding boxes
-        pcp.pcd = bbox_to_draw_object_test
-        pcp.transform(0,0,0,0.85,1.10,-0.35)
-        pcp.transform(0,0,37,0,0,0)
-        pcp.transform(108,0,0,0,0,0)
-        to_show.append(pcp.pcd)
+        to_show.append(sphere)
+
+        to_show.append(bbox_to_draw_object_test)
     
     
-    # Associate the point cloud to the objects for better view         
-    entities.append(point_cloud)
+    
     
     # Associate the inital objects to the original PC
+     # mesh_box = o3d.geometry.TriangleMesh().create_coordinate_frame(size=0.1, origin=[0, 0, 0])
     to_show.append(point_cloud_original)
+    to_show.append(frame)
     
     # ------------------------------------------
     # Backup code in case we cant do the processing image 
@@ -333,6 +340,7 @@ def main():
     # ------------------------------------------
     # Processing the 3D points to pixels  
     # ------------------------------------------
+    print("centros:" + str(centers))
     image = ImageProcessing()
     result = image.loadPointCloud(centers)
     

@@ -20,41 +20,62 @@ from matplotlib import cm
 from more_itertools import locate
 
 
+# --------------------------------------------------------------
+# Create class for image processing 
+# --------------------------------------------------------------
 class ImageProcessing():
     def __init__(self):
         pass
 
+    # --------------------------------------------------------------
+    # 3D to pixel 
+    # --------------------------------------------------------------
     def loadPointCloud(self, points):
+        # Inputs are the center points processed in the main file
+        
         #print("centros: "+ str(points))
         points_group = []
+        
+        # --------------------------------------------------------------
+        # Processing each point we gave as input 
+        # --------------------------------------------------------------
         for point in points :
             x,y,z = point[0],point[1],point[2]
-            #x,y,z = 1,1,1
+            #x,y,z = 1,1,1 # just for debuging
+            
             points_3d = np.array([[x, y, z]], dtype=np.float32)
             
             #Matriz intrinsica
-            fx = 0.5703
-            fy = 0.5703
-            cx = 640 / 2
-            cy = 480 / 2
+            fx = 570.3  #Value we get from André, thanks for that!
+            fy = 570.3
+            cx = 320 #Resolution image divided by 2
+            cy = 240
 
             intrinsic_matrix = np.array([[fx, 0, cx],
                                         [0, fy, cy],
-                                        [0, 0, 1]], dtype=np.float32)
+                                        [0, 0, 1]])            
             
-            # cálculo das coordenadas dos pontos em 2D
-            #points_2d, _ = cv2.projectPoints(points_3d, np.zeros((3, 1)), np.zeros((3, 1)), intrinsic_matrix, np.zeros((1, 4)))
-            points_2d, _ = cv2.projectPoints(points_3d, np.zeros(3), np.zeros(3), intrinsic_matrix, None, None)
-            points_2d = np.round(points_2d).astype(int)
             
+            # distcoof
+            distCoeffs = np.array([0, 0, 0, 0])
+            rvec = np.identity(3)
+            tvec = np.zeros(3)
+            # --------------------------------------------------------------
+            # Using projectpoints function to transform the 3D to pixel 
+            # --------------------------------------------------------------
+            points_2d,_ = cv2.projectPoints(points_3d, rvec, tvec, intrinsic_matrix, None)
             print("pontos: "+str(points_2d))
-            #imagePoints,_ = cv2.projectPoints(new_objs_center, rvec, tvec, intrinsic_matrix, distCoeffs)
             
+            #Associate the points to a list
             points_group.append(points_2d)
+           
             
         points_group = [point[0][0] for point in points_group]
         print("points total" + str(points_group))
         
+        # --------------------------------------------------------------
+        # Now lets processed the image with the points we get 
+        # --------------------------------------------------------------
         # carregar imagem
         img = cv2.imread("../Jota/rgb_data/00000-color.png")
         # obter altura, largura e número de canais da imagem
@@ -65,11 +86,14 @@ class ImageProcessing():
         raio = 5
         cor = (0,0,255)
         # desenhar círculos preenchidos nos pontos
-        for point in points_group:
-            x, y = point
-            cv2.circle(img, (x, y), raio, cor, -1)
+        for point in points_group:          
+            x, y = point[0], point[1]
+            print("point x: "+ str(int(x))+ " y: "+ str(int(y)))
+            cv2.circle(img, (int(x), int(y)), raio, cor, -1)
 
         # mostrar imagem
         cv2.imshow("Image", img)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
+        
+        return point
