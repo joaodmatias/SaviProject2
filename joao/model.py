@@ -38,9 +38,9 @@ class Model(nn.Module):
             nn.MaxPool2d(2)
         )
         
-        self.fc1 = nn.Linear(3*3*64,10)
+        self.fc1 = nn.Linear(3*3*64,120)
         self.dropout = nn.Dropout(0.5)
-        self.fc2 = nn.Linear(10,2)
+        self.fc2 = nn.Linear(120,51)
         self.relu = nn.ReLU()
         
         
