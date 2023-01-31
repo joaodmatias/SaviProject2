@@ -340,6 +340,7 @@ def main():
     # ------------------------------------------
     # Processing the 3D points to pixels  
     # ------------------------------------------
+    
     print("centros:" + str(centers))
     image = ImageProcessing()
     result = image.loadPointCloud(centers)
@@ -386,6 +387,8 @@ def main():
     widget3d.setup_camera(60.0, bbox, bbox.get_center())
     w.add_child(widget3d)
     app.run()
+    
+    
     
 if __name__ == "__main__":
     main()

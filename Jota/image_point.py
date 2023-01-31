@@ -12,6 +12,7 @@ from turtle import color
 import open3d as o3d
 import cv2
 import numpy as np
+import os
 import matplotlib.pyplot as plt
 import open3d.visualization.gui as gui
 import open3d.visualization.rendering as rendering
@@ -86,14 +87,53 @@ class ImageProcessing():
         raio = 5
         cor = (0,0,255)
         # desenhar círculos preenchidos nos pontos
-        for point in points_group:          
-            x, y = point[0], point[1]
+        images = []
+        
+        # Image directory
+        directory = "/home/jota/Documents/SAVI/Savi_trabalho_2/SaviProject2/Jota/images_algarvio"
+            
+        for idx, point in enumerate(points_group):          
+            x, y = int(point[0]), int(point[1])
             print("point x: "+ str(int(x))+ " y: "+ str(int(y)))
-            cv2.circle(img, (int(x), int(y)), raio, cor, -1)
+            cv2.circle(img, (x, y), raio, cor, -1)
+            
+            # Definir o retângulo de crop
+            a = y-80
+            b = y+80
+            c = x-80
+            d = x+80
+            print(str(a)+" "+str(b)+" "+str(c)+" "+str(d))
+            crop_img = img[a:b, c:d]
+            cv2.imshow("Janela", crop_img)
+        
+            # Change the current directory 
+            # to specified directory 
+            os.chdir(directory)
+            
+            # List files and directories  
+            # in 'C:/Users/Rajnish/Desktop/GeeksforGeeks'  
+            print("Before saving image:")  
+            print(os.listdir(directory))  
+            
+            # Filename
+            filename = "crop_image_"+str(idx)+".jpg"
+            
+            # Using cv2.imwrite() method
+            # Saving the image
+            cv2.imwrite(filename, crop_img)
+            
+            images.append(crop_img)
+        
+        # Concatenar as imagens horizontalmente
+        result = cv2.hconcat(images)
 
-        # mostrar imagem
-        cv2.imshow("Image", img)
+        # Exibir imagens na janela
+        cv2.imshow("Janela", result)
+
+        # Esperar até que uma tecla seja pressionada
         cv2.waitKey(0)
+
+        # Destruir a janela
         cv2.destroyAllWindows()
         
         return point
