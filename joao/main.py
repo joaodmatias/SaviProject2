@@ -34,8 +34,8 @@ def main():
     # Initialization
     # -----------------------------------------------------------------
     # Define hyper parameters
-    resume_training = True
-    model_path = 'model.pkl'
+    resume_training = False
+    model_path = 'teste.pkl'
     device = 'cuda:0' if torch.cuda.is_available() else 'cpu' # cuda: 0 index of gpu
 
     model = Model() # Instantiate model
@@ -72,7 +72,7 @@ def main():
     
     
     # Sample only a few images to speed up development
-    image_filenames = random.sample(image_filenames, k=1500)
+    image_filenames = random.sample(image_filenames, k=4000)
 
     #print(image_filenames)
     #print(len(image_filenames))
@@ -82,10 +82,10 @@ def main():
 
     # Create the dataset
     dataset_train = Dataset(train_image_filenames, class_names)
-    loader_train = torch.utils.data.DataLoader(dataset=dataset_train, batch_size=256, shuffle=True)
+    loader_train = torch.utils.data.DataLoader(dataset=dataset_train, batch_size=1000, shuffle=True)
 
     dataset_test = Dataset(test_image_filenames, class_names)
-    loader_test = torch.utils.data.DataLoader(dataset=dataset_test, batch_size=256, shuffle=True)
+    loader_test = torch.utils.data.DataLoader(dataset=dataset_test, batch_size=1000, shuffle=True)
 
     tensor_to_pil_image = transforms.ToPILImage()
 
@@ -127,9 +127,16 @@ def main():
             image_t = image_t.to(device)
             label_t = label_t.to(device)
 
+
             # Apply the network to get the predicted ys
             label_t_predicted = model.forward(image_t)
 
+        
+        #     print(label_t)
+        #     print(label_t_predicted)
+
+        # exit(0)
+        
             # Compute the error based on the predictions
             loss = loss_function(label_t_predicted, label_t)
 
@@ -155,24 +162,24 @@ def main():
 
             # Apply the network to get the predicted ys
             label_t_predicted = model.forward(image_t)
-
+            
             # Compute the error based on the predictions
             loss = loss_function(label_t_predicted, label_t)
 
             test_losses.append(loss.data.item())
 
-            test_visualizer.draw(image_t, label_t, label_t_predicted)
+            # test_visualizer.draw(image_t, label_t, label_t_predicted)
 
         # Compute the loss for the epoch
         epoch_test_loss = mean(test_losses)
         epoch_test_losses.append(epoch_test_loss)
 
         # Visualization
-        loss_visualizer.draw(list(range(0, len(epoch_train_losses))), epoch_train_losses, layer='train loss', marker='-', markersize=1, color=[0,0,0.7], alpha=1, label='Train Loss', x_label='Epochs', y_label='Loss')
+        # loss_visualizer.draw(list(range(0, len(epoch_train_losses))), epoch_train_losses, layer='train loss', marker='-', markersize=1, color=[0,0,0.7], alpha=1, label='Train Loss', x_label='Epochs', y_label='Loss')
 
-        loss_visualizer.draw(list(range(0, len(epoch_test_losses))), epoch_test_losses, layer='test loss', marker='-', markersize=1, color=[1,0,0.7], alpha=1, label='Test Loss', x_label='Epochs', y_label='Loss')
+        # loss_visualizer.draw(list(range(0, len(epoch_test_losses))), epoch_test_losses, layer='test loss', marker='-', markersize=1, color=[1,0,0.7], alpha=1, label='Test Loss', x_label='Epochs', y_label='Loss')
 
-        loss_visualizer.recomputeAxesRanges()
+        # loss_visualizer.recomputeAxesRanges()
 
         print(Fore.BLUE + 'Epoch ' + str(idx_epoch) + ' Loss ' + str(epoch_train_loss) + Style.RESET_ALL)
 

@@ -26,6 +26,7 @@ class Dataset(torch.utils.data.Dataset):
             transforms.Resize((224, 224)),
             transforms.ToTensor()])
 
+    
     def __getitem__(self, index):  # return a specific element x,y given the index, of the dataset
 
         # Load the image
@@ -46,16 +47,21 @@ class Dataset(torch.utils.data.Dataset):
         class_name = part
 
         # print('filename ' + filename + ' is a ' + Fore.RED + class_name + Style.RESET_ALL)
-
+        Class_name_exists = False
         for name in class_names:
-            if name == class_name:
+            if name == class_name and Class_name_exists == True:
+                raise ValueError('Has more than one class')
+            elif name == class_name:
+                Class_name_exists = True
                 label = class_names.index(name)
-                #print(label)
+                # if label1 < 2:
+                #     label = label1
+                # else:
+                #     label = 5
 
-#---------------------DUVIDA n funfa--------------------------------
-            # else:
-            #     raise ValueError('Unknown class')
-#-----------------------------------------------------------------
+        if Class_name_exists == False:
+            raise ValueError('unknown class')
+        
                 
         return label
         
