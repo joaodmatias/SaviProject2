@@ -18,7 +18,7 @@ class ClassificationVisualizer():
         self.title = title
         self.tensor_to_pil_image = transforms.ToPILImage()
 
-    def draw(self, inputs, labels, outputs, class_names):
+    def draw(self, inputs, outputs, class_names):
 
         # Setup figure
         self.figure = plt.figure(self.title)
@@ -62,17 +62,15 @@ class ClassificationVisualizer():
         for i in results:
             print("lista posição: "+str(i)+" com o valor de: "+str(results[i]["output_probabilities"])+" na posição interna de: "+str(results[i]["max_index"]))
         
-        random_idxs = random.sample(list(range(batch_size)), k=5*5)
+        random_idxs = random.sample(list(range(batch_size)), k=1)
         # for plot_idx, image_idx in enumerate(random_idxs):
         for spot, x in enumerate(random_idxs):
             # for i in results:
-            label = labels[x]
             output_probability_dog = results[x]["output_probabilities"]
             max_index = results[x]["max_index"]
             #print("test: "+ str(max_index))
 
-            success = True if (label.data.item() == max_index) else False
-
+            
             image_t = inputs[x,:,:,:]
             image_pil = self.tensor_to_pil_image(image_t)
 
@@ -83,10 +81,10 @@ class ClassificationVisualizer():
             ax.xaxis.set_ticks([])
             ax.yaxis.set_ticks([])
 
-            color = 'green' if success else 'red' 
+
             title = class_names[max_index]
-            #title += ' ' + str(x)
-            ax.set_xlabel(title, color=color)
+            title += ' ' + str(output_probability_dog)
+            ax.set_xlabel(title, color='green')
 
         plt.draw()
         key = plt.waitforbuttonpress(0.05)

@@ -64,27 +64,28 @@ while replacing "DATASET_PATH" with the path to the scenario you want to run.
 If no scenario is chosen, there is a preset scenario that will run.
 
 
-
-
-
-## Demo
-
-- **Objective 1** - Training a classifier in deep learning [Video](https://www.youtube.com/watch?v=6eeXVDOA_Mk&ab_channel=fratymusic)
-
-- **Objective 2** - 3D pre-processing [Video](https://www.youtube.com/watch?v=6eeXVDOA_Mk&ab_channel=fratymusic)
-
-- **Objetivo 3** - Classificação de objetos na cena [Video](https://www.youtube.com/watch?v=6eeXVDOA_Mk&ab_channel=fratymusic)
-
-- **Final Work** - System in its entirety [Video](https://www.youtube.com/watch?v=6eeXVDOA_Mk&ab_channel=fratymusic) 
 ## Functionalities/Improvements
 
 - [x] Different objects classification
+    - [x] using ICP
+    - [x] using volume
+    - [x] using dimensions
+    - [ ] using shape
 - [x] 3D dataset processing
+    - [x] find table
+    - [x] processed items on table
+    - [ ] automation for all tipes of table
+    - [ ] for items on ground (2 planes of comparison)
 - [x] Extracting information from the point cloud such as:
     - [x] color
     - [x] dimensions
     - [ ] volume
-    - [ ] orientation
+    - [ ] orientation 
+- [x] Audio processing
+- [x] Classificator:
+    - [x] trained
+    - [x] tested
+    - [ ] implementation
     
  The color information will appear on the terminal where you run the program, as an approximation to the CSS21 list of colors as well as the actual RGB value. <br/>
  The dimensions will appear as a tuple such as (width, height) in meters.
