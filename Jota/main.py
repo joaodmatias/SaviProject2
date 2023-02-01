@@ -20,6 +20,7 @@ from point_cloud_processing import PointCloudProcessing
 from matplotlib import cm
 from more_itertools import locate
 from image_point import ImageProcessing
+from audio import  audioprocessing
 
 
 
@@ -382,6 +383,11 @@ def main():
     #print("centros:" + str(centers))
     image = ImageProcessing()
     result = image.loadPointCloud(centers, args.cropped, number)
+    
+    
+    audio = audioprocessing()
+    audio_final = audio.loadaudio()
+    
     
     # ------------------------------------------
     # Better visualization
