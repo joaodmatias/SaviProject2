@@ -10,18 +10,16 @@ The "SAVI project - Where's my coffee mug?" implements an advanced perception sy
 Index
 =================
 
-   * [Description](#installation)
-   * [Text](#usage)
-      * [Text](#stdin)
-      * [Text files](#local-files)
-      * [Text files](#remote-files)
-      * [Text files](#multiple-files)
-      * [Text](#combo)
-   * [Tests](#tests)
-   * [Text](#dependency)
-   * [Text](#docker)
-     * [Text](#local)
-     * [Text](#public)
+  * [Description](#description)
+  * [The Project](#the-project)
+      * [Requirements](#requirements)
+      * [Dataset](#dataset)
+      * [Usage](#usage)
+      * [Demo](#demo)
+      * [Functionalities/Improvements](#functionalitiesimprovements)
+  * [Authors](#authors)
+  * [Reference](#reference)
+
 
 ## Description
 The second assignment of the SAVI ([Advanced Industrial Vision Systems](https://www.ua.pt/pt/uc/14722)) a curricular unit given at the [university of aveiro](https://www.ua.pt/) in the [Master's degree in mechanical engineering](https://www.ua.pt/pt/curso/488) the project aimed to teach the basics of 3D point cloud understanding and processing, as well as the use of classifiers and integration as a system. The main objective was to recognize objects identified in the point cloud using the "Washington RGB-D Dataset".
@@ -31,7 +29,7 @@ The second assignment of the SAVI ([Advanced Industrial Vision Systems](https://
 # The Project
 This project uses Open3D for point cloud processing of a dataset, OpenCV for image processing and feature extraction and PyTorch for deep neural network training of a classifier that will be able to recognize objects.
 
-## Prerequesites
+## Requirements
 It is necessary to install the following softwares before any use:
 * Open3D
 * OpenCV
@@ -69,7 +67,7 @@ If no scenario is chosen, there is a preset scenario that will run.
 
 
 
-## Demonstração
+## Demo
 
 - **Objective 1** - Training a classifier in deep learning [Video](https://www.youtube.com/watch?v=6eeXVDOA_Mk&ab_channel=fratymusic)
 
@@ -95,14 +93,14 @@ Here we can see the extraction of images of objects used to train the classifier
 ![image](https://user-images.githubusercontent.com/92520749/215945372-cfd947f6-9fe8-4e6c-9573-e4fdfc92bb5e.png)
 
 
-## Autores
+# Authors
 
 - [@jotadateta](https://github.com/jotadateta) - joaopedrotomas@ua.pt 93366
 - [@joaodmatias](https://github.com/joaodmatias) - joaodamatias@ua.pt 93098
 - [@joaodrc](https://github.com/joaodrc) - joaodanielc@ua.pt 93439
 
 
-## Reference
+# Reference
 
  - [Proposed work](https://github.com/miguelriemoliveira/savi_22-23/tree/main/Trabalho2)
 
