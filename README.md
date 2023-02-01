@@ -32,7 +32,7 @@ The second assignment of the SAVI ([Advanced Industrial Vision Systems](https://
 This project uses Open3D for point cloud processing of a dataset, OpenCV for image processing and feature extraction and PyTorch for deep neural network training of a classifier that will be able to recognize objects.
 
 ## Prerequesites
-It is necessary to install the followin softwares before any use:
+It is necessary to install the following softwares before any use:
 * Open3D
 * OpenCV
 * PyTorch
