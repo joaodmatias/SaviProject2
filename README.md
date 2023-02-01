@@ -21,7 +21,7 @@ Index
   * [Reference](#reference)
 
 
-## Description
+# Description
 The second assignment of the SAVI ([Advanced Industrial Vision Systems](https://www.ua.pt/pt/uc/14722)) a curricular unit given at the [university of aveiro](https://www.ua.pt/) in the [Master's degree in mechanical engineering](https://www.ua.pt/pt/curso/488) the project aimed to teach the basics of 3D point cloud understanding and processing, as well as the use of classifiers and integration as a system. The main objective was to recognize objects identified in the point cloud using the "Washington RGB-D Dataset".
 
 ![image](https://user-images.githubusercontent.com/92520749/215944005-0af835c8-5634-4e37-bc28-ef263991ea8d.png)
