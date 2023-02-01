@@ -34,7 +34,7 @@ class ClassificationVisualizer():
         
         output_probabilities = F.softmax(outputs, dim=1).tolist()
         
-        print(output_probabilities)
+        # print(output_probabilities)
 
         list_probabilities = []
         results = {}
@@ -46,23 +46,11 @@ class ClassificationVisualizer():
             print("lista posição: "+str(i)+" com o valor de: "+str(output_probabilities_dog_max)+" na posição interna de: "+str(max_index))
             results[i] = {"output_probabilities": output_probabilities_dog_max, "max_index": max_index}
 
-        
-        # for i in range(0,50):
-        #     output_probabilities_dog = [x[i] for x in output_probabilities]
-        #     for f in range(batch_size):
-        #         if i == 0:
-        #             output_probabilities_dog1 = output_probabilities_dog
-
-        #         elif output_probabilities_dog[f] > output_probabilities_dog1[f]:
-        #             output_probabilities_dog[f] = output_probabilities_dog1[f]
-        #             print(output_probabilities_dog)
-        #             e[f] = i
-        #             print()
 
         for i in results:
             print("lista posição: "+str(i)+" com o valor de: "+str(results[i]["output_probabilities"])+" na posição interna de: "+str(results[i]["max_index"]))
         
-        random_idxs = random.sample(list(range(batch_size)), k=1)
+        random_idxs = random.sample(list(range(batch_size)), k=6)
         # for plot_idx, image_idx in enumerate(random_idxs):
         for spot, x in enumerate(random_idxs):
             # for i in results:
@@ -74,7 +62,7 @@ class ClassificationVisualizer():
             image_t = inputs[x,:,:,:]
             image_pil = self.tensor_to_pil_image(image_t)
 
-            ax = self.figure.add_subplot(5,5,spot+1) # define a 5 x 5 subplot matrix
+            ax = self.figure.add_subplot(3,2,spot+1) # define a 3 x 2 subplot matrix
             plt.imshow(image_pil)
             ax.xaxis.set_ticklabels([])
             ax.yaxis.set_ticklabels([])
@@ -83,8 +71,8 @@ class ClassificationVisualizer():
 
 
             title = class_names[max_index]
-            title += ' ' + str(output_probability_dog)
-            ax.set_xlabel(title, color='green')
+            title += ' ' + str(int(output_probability_dog*100)) + '%'
+            ax.set_xlabel(title, color='blue')
 
         plt.draw()
         key = plt.waitforbuttonpress(0.05)
