@@ -6,7 +6,101 @@ import math
 import numpy as np
 import os
 import cv2
+from more_itertools import locate
 
+class PlaneDetection():
+    def __init__(self, point_cloud):
+
+        self.point_cloud = point_cloud
+
+
+    def colorizeInliers(self, r,g,b):
+        self.inlier_cloud.paint_uniform_color([r,g,b]) # paints the plane in red
+
+    def segment(self, distance_threshold=0.05, ransac_n=5, num_iterations=50):
+
+        print('Starting plane detection')
+        plane_model, inlier_idxs = self.point_cloud.segment_plane(distance_threshold=distance_threshold, 
+                                                    ransac_n=ransac_n,
+                                                    num_iterations=num_iterations)
+        [self.a, self.b, self.c, self.d] = plane_model
+
+        self.inlier_cloud = self.point_cloud.select_by_index(inlier_idxs)
+
+        outlier_cloud = self.point_cloud.select_by_index(inlier_idxs, invert=True)
+
+        return outlier_cloud
+
+
+    def __str__(self):
+        text = 'Segmented plane from pc with ' + str(len(self.point_cloud.points)) + ' points and ' + str(len(self.inlier_cloud.points)) + ' inliers. '
+        text += '\nPlane: ' + str(self.a) +  ' x + ' + str(self.b) + ' y + ' + str(self.c) + ' z + ' + str(self.d) + ' = 0' 
+        return text
+    
+class FindTable():
+    def __init__(self, planes):
+        self.planes = planes
+    def find(self):
+        planes = self.planes
+        dists = []
+
+        dist_to_0_1 = planes[0].d
+        dist_to_0_2 = planes[1].d
+
+        dists.append(dist_to_0_1)
+        dists.append(dist_to_0_2)
+
+        dist_between_planes = abs(dist_to_0_1) - abs(dist_to_0_2)
+       
+        if abs(dist_between_planes) > 0.25:
+            if dist_between_planes > 0:
+                self.table = planes[1]
+            else:
+                self.table = planes[0]
+        else:
+            self.table = planes[0]
+
+        return self.table
+    
+    def cutTable(self):
+        self.pc = []
+        pc = self.table.inlier_cloud
+        pc = pc.voxel_down_sample(voxel_size=0.005) 
+        
+        print('PC === ' + str(pc))
+        cluster_idxs = list(pc.cluster_dbscan(eps=0.09, min_points=1000, print_progress=True))
+        object_idxs = list(set(cluster_idxs))
+        object_idxs.remove(-1)
+
+        table_size = 0
+        sizes = []
+        for object_idx in object_idxs:
+            object_point_idxs = list(locate(cluster_idxs, lambda x: x == object_idx))
+            object_points = pc.select_by_index(object_point_idxs)
+
+            size = len(object_points.points)
+            
+            if size > table_size:
+                self.pc = object_points
+
+            sizes.append(size)
+            table_size = max(sizes)
+
+        return self.pc
+    
+    def transform(self, r, p, y, tx, ty, tz): 
+
+        # Convert from rad to deg
+        r = math.pi * r / 180.0
+        p = math.pi * p / 180.0
+        y = math.pi * y / 180.0
+
+        # First rotate
+        rotation = self.pc.get_rotation_matrix_from_xyz((r,p,y))
+        self.pc.rotate(rotation, center=(0, 0, 0))
+
+        # Then translate
+        self.pc = self.pc.translate((tx,ty,tz))
 
 class PointCloudProcessing():
     def __init__(self):
@@ -19,6 +113,8 @@ class PointCloudProcessing():
 
         print("Load a point cloud from " + filename)
         self.original = deepcopy(self.pcd) # make a vbackup of the original point cloud
+        
+        return self.pcd
 
     def preProcess(self,voxel_size=0.02):
         # Downsampling using voxel grid filter
@@ -29,7 +125,7 @@ class PointCloudProcessing():
         self.pcd.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=0.2, max_nn=30))
         self.pcd.orient_normals_to_align_with_direction(orientation_reference=np.array([0., 0., 1.]))
         
-    def transform(self, r,p,y,tx,ty,tz): 
+    def transform(self, r, p, y, tx, ty, tz): 
 
         # Convert from rad to deg
         r = math.pi * r / 180.0
@@ -68,20 +164,9 @@ class PointCloudProcessing():
         self.pcd = self.pcd.crop(self.bbox)
 
 
-    def findPlane(self, distance_threshold=0.01, ransac_n=3, num_iterations=100):
-
-        print('Segmenting plane from point cloud with ' + str(len(self.pcd.points)) + ' points')
-        plane_model, inlier_idxs = self.pcd.segment_plane(distance_threshold=distance_threshold, ransac_n=ransac_n, num_iterations=num_iterations)
-        self.a, self.b, self.c, self.d = plane_model
-        self.inliers = self.pcd.select_by_index(inlier_idxs)
-        
-        outlier_cloud = self.pcd.select_by_index(inlier_idxs, invert=True)
-        return outlier_cloud
-
 class ObjectProperties():
     def __init__(self, object):
         self.idx = object['idx']
-        # self.pc_color = object['color']
         self.center = object['center']
 
         self.point_cloud = object['points']
