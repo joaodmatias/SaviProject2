@@ -37,16 +37,10 @@ def main():
     # -----------------------------------------------------------------
     # Define hyper parameters
     resume_training = True
-    model_path = 'teste.pkl'
+    model_path = 'model.pkl'
     device = 'cuda:0' if torch.cuda.is_available() else 'cpu' # cuda: 0 index of gpu
 
     model = Model() # Instantiate model
-
-    learning_rate = 0.001
-    maximum_num_epochs = 50 
-    termination_loss_threshold =  0.01
-    loss_function = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     class_names = []
     class_names2 = []
 
@@ -61,7 +55,7 @@ def main():
     # -----------------------------------------------------------------
 
     dataset_path = '/home/joao/Documents/SAVI/rgbd-dataset'
-    Image_jota_path = '/home/joao/Documents/SAVI/SaviProject2/Jota/images_algarvio'
+    Image_jota_path = '/home/joao/Documents/SAVI/SaviProject2/Jota/imagens_class'
 
     name_filenames = glob.glob(dataset_path + '/*/')
 
@@ -76,7 +70,7 @@ def main():
     # Create the dataset
 
     dataset_test = Dataset(image_filenames)
-    loader_test = torch.utils.data.DataLoader(dataset=dataset_test)
+    loader_test = torch.utils.data.DataLoader(dataset=dataset_test, batch_size=6)
 
     # dataset_test = Dataset(image_filenames, class_names)
     #loader_test = torch.utils.data.DataLoader(dataset=image_t, batch_size=1000, shuffle=True)
@@ -88,8 +82,6 @@ def main():
 
     checkpoint = torch.load(model_path, map_location= device)
     model.load_state_dict(checkpoint['model_state_dict'])
-    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-    idx_epoch = checkpoint['epoch']
 
 
         # model.train()
@@ -97,23 +89,22 @@ def main():
     # -----------
 
     model.to(device) # move the model variable to the gpu if one exists
-    while True:
 
-        
-        # Run test in batches ---------------------------------------
-        # TODO dropout
-        test_losses = []
-        #for batch_idx, (image_t, label_t) in tqdm(enumerate(loader_test), total=len(loader_test), desc=Fore.GREEN + 'Testing batches for Epoch ' + str(idx_epoch) +  Style.RESET_ALL):
     
-        for image_t in loader_test:
-            image_t = image_t.to(device)
+    # Run test in batches ---------------------------------------
+    # TODO dropout
+    test_losses = []
+    #for batch_idx, (image_t, label_t) in tqdm(enumerate(loader_test), total=len(loader_test), desc=Fore.GREEN + 'Testing batches for Epoch ' + str(idx_epoch) +  Style.RESET_ALL):
+
+    for image_t in loader_test:
+        image_t = image_t.to(device)
 
 
-            # Apply the network to get the predicted ys
-            label_t_predicted = model.forward(image_t)
-            
-            test_visualizer.draw(image_t, label_t_predicted, class_names)
-
+        # Apply the network to get the predicted ys
+        label_t_predicted = model.forward(image_t)
+        
+        test_visualizer.draw(image_t, label_t_predicted, class_names)
+        input('Enter para continuar')
             #-----------------------------------------------------------------------
             # Vizualizer
 

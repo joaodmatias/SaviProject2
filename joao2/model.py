@@ -6,7 +6,7 @@ import numpy as np
 from torch.autograd import Variable
 from torch import nn
 
-# Definition of the model. For now a 1 neuron network
+
 
 class Model(nn.Module):
     def __init__(self):
