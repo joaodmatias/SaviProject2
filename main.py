@@ -269,14 +269,16 @@ def main():
     # Draw bbox
     bbox_to_draw = o3d.geometry.LineSet.create_from_axis_aligned_bounding_box(pc.bbox)
     entities.append(bbox_to_draw)
-
+    dimensions = []
     # Draw objects
+    color = []
     for object_idx, object in enumerate(objects):
         entities.append(object['points'])
 
         properties = ObjectProperties(object)
         size = properties.getSize()
         print("This object's SIZE is " + str(size))
+        dimensions.append(size)
 
         color_rgb = properties.getColor(object_idx)
         
@@ -298,7 +300,7 @@ def main():
 
         print("This object's approximate COLOR is " + str(closest_name) + ' with ' + 
               str(color_rgb) + ' RGB value')
-        
+        color.append(closest_name)
         # Get the aligned bounding box of the point cloud
         bbox_to_draw_object_processed = o3d.geometry.AxisAlignedBoundingBox.get_axis_aligned_bounding_box(object['points'])
         entities.append(bbox_to_draw_object_processed)
@@ -370,7 +372,9 @@ def main():
     list_pcd_model = []
     for variable_name, info in list_pcd.items():
         list_pcd_model.append(info["point_cloud"])
-     
+        
+    
+    
     for object_idx, object in enumerate(objects):
         object['rmse'] = 10
         object['indexed'] = 100
@@ -545,8 +549,9 @@ def main():
     w.add_child(widget3d)
     app.run()
     
+   # Inicialize audio processing
     audio = audioprocessing()
-    audio_final = audio.loadaudio(lista_audio, number)
+    audio_final = audio.loadaudio(lista_audio, number, dimensions)
     
     
 if __name__ == "__main__":
