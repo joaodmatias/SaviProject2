@@ -34,14 +34,14 @@ def main():
     # Initialization
     # -----------------------------------------------------------------
     # Define hyper parameters
-    resume_training = False
-    model_path = 'teste.pkl'
+    resume_training = True
+    model_path = 'model.pkl'
     device = 'cuda:0' if torch.cuda.is_available() else 'cpu' # cuda: 0 index of gpu
 
     model = Model() # Instantiate model
 
     learning_rate = 0.001
-    maximum_num_epochs = 50 
+    maximum_num_epochs = 100
     termination_loss_threshold =  0.01
     loss_function = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
@@ -168,7 +168,7 @@ def main():
 
             test_losses.append(loss.data.item())
 
-            # test_visualizer.draw(image_t, label_t, label_t_predicted)
+            # test_visualizer.draw(image_t, label_t, label_t_predicted, class_names)
 
         # Compute the loss for the epoch
         epoch_test_loss = mean(test_losses)
@@ -211,4 +211,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

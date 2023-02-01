@@ -1,6 +1,5 @@
 
 
-
 import torch
 import numpy as np
 from colorama import Fore, Style
@@ -65,4 +64,3 @@ class Dataset(torch.utils.data.Dataset):
                 
         return label
         
-    
