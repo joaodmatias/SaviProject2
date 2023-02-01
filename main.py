@@ -183,7 +183,7 @@ def main():
     table = table_inst.cutTable()
 
     # Axis Alignment with table center
-    frame = o3d.geometry.TriangleMesh().create_coordinate_frame(size=0.5, origin=np.array([0., 0., 0.]))
+    frame = o3d.geometry.TriangleMesh().create_coordinate_frame(size=0.3, origin=np.array([0., 0., 0.]))
     tx, ty, tz = table.get_center()
 
     pc.transform(0, 0, 0, -tx, -ty, -tz)
