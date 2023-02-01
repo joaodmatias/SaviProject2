@@ -31,7 +31,7 @@ class ImageProcessing():
     # --------------------------------------------------------------
     # 3D to pixel 
     # --------------------------------------------------------------
-    def loadPointCloud(self, points, show):
+    def loadPointCloud(self, points, show, scenario):
         # Inputs are the center points processed in the main file
         
         #print("centros: "+ str(points))
@@ -78,13 +78,13 @@ class ImageProcessing():
         # Now lets processed the image with the points we get 
         # --------------------------------------------------------------
         # carregar imagem
-        img = cv2.imread("../Jota/rgb_data/00000-color.png")
+        img = cv2.imread("../Jota/rgb_data/"+scenario+".png")
         # obter altura, largura e número de canais da imagem
         height, width, _ = img.shape
         # imprimir resolução da imagem
         print("Resolução da imagem: " + str(width) + " x " + str(height))
         #settings
-        raio = 5
+        raio = 1
         cor = (0,0,255)
         # desenhar círculos preenchidos nos pontos
         images = []
@@ -98,10 +98,18 @@ class ImageProcessing():
             cv2.circle(img, (x, y), raio, cor, -1)
             
             # Definir o retângulo de crop
-            a = y-80
-            b = y+80
-            c = x-80
-            d = x+80
+            a = y-60
+            b = y+60
+            c = x-60
+            d = x+60
+            # if a < 0:
+            #     a = 0
+            # if c < 0:
+            #     c = 0
+            # if b > 420:
+            #     a = 420
+            # if d < 640:
+            #     d = 640
             print(str(a)+" "+str(b)+" "+str(c)+" "+str(d))
             crop_img = img[a:b, c:d]
         

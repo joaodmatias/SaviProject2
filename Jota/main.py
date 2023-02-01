@@ -93,7 +93,7 @@ parser.add_argument("-c", "--camera", help="Activate camera ref", action="store_
 parser.add_argument("-e", "--extra", help="Activate extra function 1", action="store_true")
 parser.add_argument("-t", "--comparation", help="Activate comparation mode", action="store_true")
 parser.add_argument("-f", "--cropped", help="Show the final cropped images", action="store_true")
-parser.add_argument("-p", "--dataset_path", help="Select the path of the desire point cloud", default="../Data_scenario/03.ply", type=str)
+parser.add_argument("-p", "--dataset_path", help="Select the path of the desire point cloud", default="../Data_scenario/03.pcd", type=str)
 
 
 args = parser.parse_args()
@@ -120,6 +120,11 @@ def main():
     p.loadPointCloud(args.dataset_path)    
     print("Load a ply point cloud, print it, and render it")
     
+    # ----------------------------------------------
+    # Extract the file name pcd for image processing
+    # ----------------------------------------------
+    file_name = args.dataset_path.split('/')[-1]
+    number = file_name.split('.')[0]
     # ------------------------------------------
     # Create a original PointCloud   
     # ------------------------------------------
@@ -376,7 +381,7 @@ def main():
     
     #print("centros:" + str(centers))
     image = ImageProcessing()
-    result = image.loadPointCloud(centers, args.cropped)
+    result = image.loadPointCloud(centers, args.cropped, number)
     
     # ------------------------------------------
     # Better visualization
