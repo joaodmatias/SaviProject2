@@ -348,7 +348,7 @@ def main():
 
         to_show.append(bbox_to_draw_object_test)
     
-    
+    #teste
     
     
     # Associate the inital objects to the original PC

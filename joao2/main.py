@@ -42,7 +42,6 @@ def main():
 
     model = Model() # Instantiate model
     class_names = []
-    class_names2 = []
 
     test_visualizer = ClassificationVisualizer('Test Images')
 
